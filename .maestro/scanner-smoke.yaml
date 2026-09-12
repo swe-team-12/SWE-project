@@ -1,0 +1,17 @@
+appId: com.biletflow.demo
+name: BiletFlow scanner smoke
+---
+- launchApp:
+    clearState: true
+- assertVisible: "BiletFlow"
+- tapOn: "Sign in"
+- tapOn: "Email"
+- inputText: "${BILETFLOW_SCANNER_EMAIL}"
+- tapOn: "Password"
+- inputText: "${BILETFLOW_DEMO_PASSWORD}"
+- tapOn:
+    text: "Sign in"
+    index: 1
+- tapOn: "Scanner"
+- assertVisible: "Admission scanner"
+- assertVisible: "Open camera"

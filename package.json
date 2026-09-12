@@ -1,0 +1,33 @@
+{
+  "name": "biletflow",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm --workspace @biletflow/client run start",
+    "web": "npm --workspace @biletflow/client run web",
+    "test": "npm --workspace @biletflow/client run test",
+    "typecheck": "npm --workspace @biletflow/client run typecheck",
+    "lint": "npm --workspace @biletflow/client run lint",
+    "generate:api": "npm --workspace @biletflow/api-client run generate",
+    "test:e2e": "playwright test"
+  },
+  "overrides": {
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-native": "0.86.3",
+    "react-test-renderer": "19.2.3"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-native": "0.86.3",
+    "react-test-renderer": "19.2.3"
+  },
+  "engines": {
+    "node": "^22.13.0 || ^24.3.0 || >=26.0.0"
+  }
+}

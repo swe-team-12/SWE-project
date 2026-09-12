@@ -1,0 +1,14 @@
+.git
+.github
+.env
+node_modules
+apps/client/.expo
+apps/client/dist
+services/api/.venv
+services/api/.mypy_cache
+services/api/.pytest_cache
+services/api/.ruff_cache
+services/api/__pycache__
+services/api/tests
+backups
+tmp

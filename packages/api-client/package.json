@@ -1,0 +1,11 @@
+{
+  "name": "@biletflow/api-client",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "generate": "openapi-typescript http://localhost:8010/openapi.json -o src/schema.d.ts"
+  },
+  "devDependencies": {
+    "openapi-typescript": "^7.10.1"
+  }
+}

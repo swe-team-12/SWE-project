@@ -1,0 +1,99 @@
+name: BiletFlow CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.8.15"
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: uv sync --locked
+      - run: uv run ruff check app scripts tests
+      - run: uv run mypy app
+      - run: uv run pytest --cov=app --cov-report=term-missing
+
+  client:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npm --workspace @biletflow/client run export
+        env:
+          EXPO_NO_TELEMETRY: "1"
+
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.8.15"
+          enable-cache: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Build and start the application
+        run: docker compose up --build -d postgres redis minio mailpit migrate api worker client
+      - name: Wait for API readiness
+        run: |
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:8010/health/ready; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker compose logs api migrate
+          exit 1
+      - name: Seed the deterministic demonstration
+        run: docker compose exec -T api uv run python -m app.seed
+      - name: Run complete API journey
+        working-directory: services/api
+        run: |
+          uv sync --locked
+          uv run python scripts/demo_check.py
+          uv run python scripts/concurrency_check.py
+      - name: Wait for universal web client
+        run: |
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:8081; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker compose logs client
+          exit 1
+      - name: Run responsive browser journeys
+        run: npm run test:e2e
+      - name: Validate Compose configuration
+        run: docker compose config --quiet
+      - name: Show service logs after failure
+        if: failure()
+        run: docker compose logs --no-color api worker migrate client postgres redis minio mailpit

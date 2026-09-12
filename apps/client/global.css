@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body,
+#root {
+  min-height: 100%;
+  background: #f4f8fb;
+}
+
+*:focus-visible {
+  outline: 3px solid #00a7a5;
+  outline-offset: 2px;
+}
+

@@ -1,0 +1,41 @@
+{
+  "expo": {
+    "name": "BiletFlow",
+    "slug": "biletflow",
+    "scheme": "biletflow",
+    "version": "0.1.0",
+    "orientation": "default",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.biletflow.demo",
+      "infoPlist": {
+        "NSCameraUsageDescription": "BiletFlow uses the camera to verify admission tickets."
+      }
+    },
+    "android": {
+      "package": "com.biletflow.demo",
+      "permissions": ["CAMERA"]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-localization",
+      "expo-secure-store",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow BiletFlow event staff to scan admission tickets."
+        }
+      ],
+      "expo-sqlite"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
