@@ -269,6 +269,9 @@ const en = {
     seatMapLabel: "Interactive Almaty Hall seat map",
     seatAccessibilityLabel:
       "Section {{section}}, row {{row}}, seat {{number}}, {{category}}{{accessibility}}, {{status}}",
+    premiumSeatCategory: "premium",
+    standardSeatCategory: "standard",
+    accessibleSeatCategory: "accessible",
     accessibleSeatSuffix: ", accessible seat",
     reverseCheckIn: "Reverse check-in",
   },
@@ -591,6 +594,9 @@ const ru = {
     seatMapLabel: "Интерактивная схема мест зала Almaty Hall",
     seatAccessibilityLabel:
       "Сектор {{section}}, ряд {{row}}, место {{number}}, {{category}}{{accessibility}}, {{status}}",
+    premiumSeatCategory: "премиум",
+    standardSeatCategory: "стандарт",
+    accessibleSeatCategory: "доступное",
     accessibleSeatSuffix: ", доступное место",
     reverseCheckIn: "Отменить отметку входа",
   },
@@ -915,6 +921,9 @@ const kk = {
     seatMapLabel: "Almaty Hall интерактивті орындар картасы",
     seatAccessibilityLabel:
       "{{section}} секторы, {{row}} қатары, {{number}} орны, {{category}}{{accessibility}}, {{status}}",
+    premiumSeatCategory: "премиум",
+    standardSeatCategory: "стандарт",
+    accessibleSeatCategory: "қолжетімді",
     accessibleSeatSuffix: ", қолжетімді орын",
     reverseCheckIn: "Кіру белгісін қайтару",
   },

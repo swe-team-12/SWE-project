@@ -25,6 +25,11 @@ export function SeatMap({
 }) {
   const { t } = useTranslation();
   const [listMode, setListMode] = useState(false);
+  const categoryLabels: Record<string, string> = {
+    premium: t("ui.premiumSeatCategory"),
+    standard: t("ui.standardSeatCategory"),
+    accessible: t("ui.accessibleSeatCategory"),
+  };
   const display = useMemo(
     () =>
       seats.map((seat) => ({
@@ -83,10 +88,13 @@ export function SeatMap({
                     section: seat.section,
                     row: seat.row,
                     number: seat.number,
-                    category: seat.price_category,
-                    accessibility: seat.is_accessible
-                      ? t("ui.accessibleSeatSuffix")
-                      : "",
+                    category:
+                      categoryLabels[seat.price_category] ??
+                      seat.price_category,
+                    accessibility:
+                      seat.is_accessible && seat.price_category !== "accessible"
+                        ? t("ui.accessibleSeatSuffix")
+                        : "",
                     status: t(`status.${seat.status}`),
                   })}
                   className={`min-h-12 min-w-28 justify-center rounded-xl border px-3 ${seat.status === "selected" ? "border-brand bg-teal-50" : "border-line bg-white"}`}
@@ -176,10 +184,13 @@ export function SeatMap({
                     section: seat.section,
                     row: seat.row,
                     number: seat.number,
-                    category: seat.price_category,
-                    accessibility: seat.is_accessible
-                      ? t("ui.accessibleSeatSuffix")
-                      : "",
+                    category:
+                      categoryLabels[seat.price_category] ??
+                      seat.price_category,
+                    accessibility:
+                      seat.is_accessible && seat.price_category !== "accessible"
+                        ? t("ui.accessibleSeatSuffix")
+                        : "",
                     status: t(`status.${seat.status}`),
                   })}
                 />
