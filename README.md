@@ -71,6 +71,184 @@ make down       # stop containers; named data volumes are retained
 
 The complete demonstration script creates isolated journey data and verifies the primary and stretch flows. See [Demo guide](./docs/DEMO.md).
 
+## QA engineer setup
+
+Use the Docker workflow below as the shared QA baseline. It runs the same seeded services and data on every tester's machine and does not require a locally installed Python or Node.js runtime.
+
+### Start the complete stack
+
+Prerequisites:
+
+- Git.
+- Docker Desktop with Docker Compose v2 running.
+- GNU Make, or use the equivalent Docker Compose commands below.
+- Ports `8010`, `8081`, `8025`, `9100`, `9101`, `19000`, `19001`, `5433`, `6379`, and `1025` available.
+
+Clone the repository and run the stack from its root:
+
+```bash
+git clone https://github.com/Nurikexe/SWE-project.git
+cd SWE-project
+docker compose version
+make demo
+docker compose ps
+curl --fail http://localhost:8010/health/ready
+```
+
+If `make` is unavailable, replace `make demo` with:
+
+```bash
+docker compose up --build -d
+docker compose exec api uv run python -m app.seed
+```
+
+The readiness response should report both PostgreSQL and Redis as `ok`. Then open:
+
+- Application: <http://localhost:8081>
+- API documentation: <http://localhost:8010/docs>
+- Test email inbox: <http://localhost:8025>
+- Private object-storage console: <http://localhost:9101>
+
+Docker Compose automatically uses `.env.example` for the local demonstration environment. Do not enter real customer, payment-card, bank, identity, or other real personal data.
+
+### Seeded QA accounts
+
+Use the value of `DEMO_PASSWORD` in `.env.example` for every account. Do not paste the password into screenshots, logs, or issues.
+
+| Role           | Email                   | Suggested coverage                                                                    |
+| -------------- | ----------------------- | ------------------------------------------------------------------------------------- |
+| Attendee       | `attendee@example.com`  | Discovery, checkout simulation, orders, tickets, calendar, and support                |
+| Organizer      | `organizer@example.com` | Events, ticket types, seating, campaigns, staff, refunds, and analytics               |
+| Check-in staff | `scanner@example.com`   | Camera/manual scanning, duplicate detection, offline sync, and reversal               |
+| Platform Admin | `admin@example.com`     | Moderation, activation review, payouts, settings, support escalation, and CSV reports |
+
+Each QA engineer should use a separate local installation. Tests that create registrations, orders, support cases, or check-ins intentionally change that installation's local data.
+
+### Required smoke pass
+
+Start with the automated API and concurrency journeys:
+
+```bash
+make verify
+make concurrency
+```
+
+Then complete this short manual pass:
+
+- [ ] The event list and Almaty Tech Forum detail page load in Kazakh, Russian, and English.
+- [ ] The Attendee can choose an available seat through both the visual map and accessible list, reserve it, and complete each simulated payment outcome.
+- [ ] A successful order produces an account ticket, admission QR, downloadable A4 PDF, and message in Mailpit.
+- [ ] The Organizer can edit and preview an event, manage staff and campaigns, inspect analytics, and issue a simulated refund.
+- [ ] Check-in Staff sees valid, already-used, wrong-event, refunded, and cancelled outcomes and can reverse a check-in.
+- [ ] Offline scanning can download a validation bundle, queue an action, synchronize it, and display any conflict.
+- [ ] Support messages update live, attachments remain private, and unauthorized downloads are rejected.
+- [ ] Platform Admin search, moderation, settings, reporting, activation, and payout screens load without permission leakage.
+- [ ] Browser and terminal consoles contain no unexpected errors.
+
+The longer role-by-role walkthrough is in the [demo guide](./docs/DEMO.md).
+
+### Optional browser, unit, and native checks
+
+Install Node 24 using `.nvmrc` before running host-side client tests. If `nvm` is available, run:
+
+```bash
+nvm install
+nvm use
+npm ci
+npx playwright install chromium
+make test
+npm run test:e2e
+```
+
+`make test` also requires Python 3.12+ and [uv](https://docs.astral.sh/uv/) on the host. The Playwright suite expects the Docker stack to remain running.
+
+For an iOS Simulator or Android Emulator, stop only the containerized web client and start Expo locally:
+
+```bash
+docker compose stop client
+npm run dev
+```
+
+Use Expo's `i` and `a` shortcuts for iOS and Android. An Android Emulator or physical device cannot use the default `localhost` API address: set `EXPO_PUBLIC_API_URL` and `EXPO_PUBLIC_WS_URL` to `10.0.2.2` for the standard Android Emulator or to the computer's LAN address for a physical device before starting Expo.
+
+### Logs, stopping, and resetting
+
+Inspect recent service output with:
+
+```bash
+docker compose logs --since=10m --no-color api worker client
+make logs
+```
+
+Stop the project while retaining local test data:
+
+```bash
+make down
+```
+
+For a completely clean baseline, first save any evidence you need and then run:
+
+```bash
+docker compose down --volumes --remove-orphans
+make demo
+```
+
+The reset command permanently removes only this Compose project's local PostgreSQL, Redis, and MinIO volumes, including all QA-created records and files.
+
+### Reporting QA issues
+
+Create one issue per defect using the repository's [QA bug report form](./.github/ISSUE_TEMPLATE/qa_bug_report.yml). Search for an existing issue first and use a title such as `[QA][Checkout] Seat remains reserved after timeout`.
+
+Use this severity rubric consistently:
+
+| Severity | Meaning                                                                                                    |
+| -------- | ---------------------------------------------------------------------------------------------------------- |
+| Blocker  | The stack cannot be tested, or there is data loss, a security/privacy exposure, or no usable path forward. |
+| Critical | A required role or primary flow is unusable and has no reasonable workaround.                              |
+| Major    | Required behavior is incorrect, but testing can continue with a workaround.                                |
+| Minor    | A visual, copy, accessibility, or low-impact usability defect does not block the flow.                     |
+
+Every report should include the commit under test (`git rev-parse --short HEAD`), platform/device, locale, test-data state, exact steps, expected and actual results, reproducibility, and supporting evidence. For API failures, include the method, path, HTTP status, and stable error `code`. Before attaching evidence, redact passwords, access/refresh tokens, cookies, QR payloads, attendee contact details, and other personal data.
+
+<details>
+<summary>Copyable issue template for Jira, Linear, email, or another tracker</summary>
+
+```markdown
+Title: [QA][Area] Concise description
+
+Severity: Blocker | Critical | Major | Minor
+Area: Authentication | Events | Checkout | Tickets | Organizer | Scanner | Offline sync | Support | Admin | Analytics | Localization/Accessibility | Infrastructure/API
+Build/commit: output of `git rev-parse --short HEAD`
+Environment: Web desktop | Web mobile | iOS | Android | API
+OS/device and version:
+Browser/app version:
+Locale: kk | ru | en
+Test data: Fresh seed | Modified seed | Newly registered account
+Reproducibility: Always | Intermittent | Once
+
+Preconditions:
+
+Steps to reproduce:
+
+1. [First action]
+2. [Second action]
+3. [Observed result]
+
+Expected result:
+
+Actual result:
+
+API request/status/error code, if relevant:
+
+Evidence and sanitized logs:
+
+Workaround or additional context:
+
+Privacy check: I removed passwords, tokens, cookies, QR payloads, and personal data.
+```
+
+</details>
+
 ## Local development
 
 Use Node 24 (the repository includes `.nvmrc`), Python 3.12+, uv, and Docker for dependencies.
@@ -123,6 +301,7 @@ apps/client/          Expo Router universal application
 packages/api-client/  generated TypeScript OpenAPI declarations
 services/api/         FastAPI app, workers, migrations, seed, tests
 docs/                 architecture and demonstration guides
+.github/ISSUE_TEMPLATE/ structured QA issue form
 .github/workflows/    continuous integration
 docker-compose.yml    complete local service topology
 ```

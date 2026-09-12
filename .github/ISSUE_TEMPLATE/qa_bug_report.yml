@@ -1,0 +1,185 @@
+name: QA bug report
+description: Report a reproducible BiletFlow defect found during quality assurance.
+title: "[QA Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for testing BiletFlow. Create one issue per defect and use only demonstration data.
+        Never include passwords, tokens, cookies, QR payloads, payment details, or personal information.
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Preflight checks
+      description: Complete these checks before submitting the report.
+      options:
+        - label: I searched open and closed issues for the same defect.
+          required: true
+        - label: I reproduced this against the commit and environment recorded below.
+          required: true
+        - label: I removed credentials, tokens, QR payloads, and personal data from all evidence.
+          required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: Use the severity definitions in README.md.
+      options:
+        - Blocker - testing cannot continue, data loss, or security/privacy exposure
+        - Critical - primary flow is unusable with no reasonable workaround
+        - Major - required behavior is incorrect but a workaround exists
+        - Minor - visual, copy, accessibility, or low-impact usability issue
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Product area
+      options:
+        - Authentication and profiles
+        - Event discovery and details
+        - Checkout and simulated payments
+        - Orders, tickets, QR, PDF, and calendar
+        - Organizer event management
+        - Seating and inventory
+        - Campaigns and promotions
+        - Scanner and check-in
+        - Offline scanner synchronization
+        - Support and attachments
+        - Platform administration
+        - Analytics and reporting
+        - Localization and accessibility
+        - API, workers, storage, or infrastructure
+    validations:
+      required: true
+
+  - type: input
+    id: build
+    attributes:
+      label: Build or commit
+      description: Run `git rev-parse --short HEAD` in the repository.
+      placeholder: e.g. b3998c6
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Test environment
+      options:
+        - Web - desktop browser
+        - Web - mobile viewport/browser
+        - iOS Simulator
+        - Physical iOS device
+        - Android Emulator
+        - Physical Android device
+        - API or background worker
+    validations:
+      required: true
+
+  - type: input
+    id: system
+    attributes:
+      label: OS, device, and browser/app version
+      placeholder: e.g. macOS 15.6, Chrome 140; or iPhone 16 Simulator, iOS 19
+    validations:
+      required: true
+
+  - type: dropdown
+    id: locale
+    attributes:
+      label: Application language
+      options:
+        - Kazakh (kk)
+        - Russian (ru)
+        - English (en)
+        - Not language-specific
+    validations:
+      required: true
+
+  - type: dropdown
+    id: data_state
+    attributes:
+      label: Test-data state
+      options:
+        - Fresh deterministic seed
+        - Seeded data modified by earlier tests
+        - Newly registered account or newly created event
+        - Unknown
+    validations:
+      required: true
+
+  - type: textarea
+    id: preconditions
+    attributes:
+      label: Preconditions
+      description: Record the role, event, ticket/order state, feature flags, and any setup required before step 1.
+      placeholder: Signed in as Organizer; Almaty Tech Forum is published; CAMPUS20 is enabled.
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Use exact, numbered actions. Include routes or control labels where useful.
+      placeholder: |
+        1. Sign in as ...
+        2. Open ...
+        3. Select ...
+        4. Observe ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+      description: Describe the observable behavior that should occur.
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual result
+      description: Describe what occurred, including visible status text and stable error codes.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: reproducibility
+    attributes:
+      label: Reproducibility
+      options:
+        - Always
+        - Intermittent
+        - Once
+        - Unable to retry safely
+    validations:
+      required: true
+
+  - type: textarea
+    id: api_evidence
+    attributes:
+      label: Sanitized API or console evidence
+      description: Include method, path, status, stable error code, and relevant logs. Remove Authorization/Cookie headers and all sensitive values.
+      render: shell
+
+  - type: upload
+    id: visual_evidence
+    attributes:
+      label: Screenshots or recordings
+      description: Upload sanitized images, recordings, or logs. Keep the demonstration-only banner visible for finance-related flows.
+    validations:
+      required: false
+      accept: ".png,.jpg,.jpeg,.gif,.webp,.mp4,.mov,.webm,.log,.txt,.json,.zip"
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Workaround, regression, or additional context
+      description: Note whether this worked in an earlier commit, any workaround, and related issue links.
