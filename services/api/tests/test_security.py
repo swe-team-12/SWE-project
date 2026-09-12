@@ -57,9 +57,9 @@ def test_admission_qr_is_signed_namespaced_and_contains_no_pii() -> None:
     }
 
     encoded, signature = token.rsplit(".", 1)
-    replacement = "A" if signature[-1] != "A" else "B"
+    replacement = "A" if signature[0] != "A" else "B"
     with pytest.raises(ValueError, match="invalid_admission_qr"):
-        decode_admission_token(f"{encoded}.{signature[:-1]}{replacement}")
+        decode_admission_token(f"{encoded}.{replacement}{signature[1:]}")
 
 
 def test_refresh_or_other_jwt_cannot_be_used_as_access_token() -> None:
