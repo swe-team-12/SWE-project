@@ -87,7 +87,7 @@ Prerequisites:
 Clone the repository and run the stack from its root:
 
 ```bash
-git clone https://github.com/Nurikexe/SWE-project.git
+git clone https://github.com/swe-team-12/SWE-project.git
 cd SWE-project
 docker compose version
 make demo
@@ -149,7 +149,7 @@ The longer role-by-role walkthrough is in the [demo guide](./docs/DEMO.md).
 
 ### Optional browser, unit, and native checks
 
-Install Node 24 using `.nvmrc` before running host-side client tests. If `nvm` is available, run:
+Use Node.js 24 for host-side client tests. It is selected by `.nvmrc`, used by the client Docker image, and tested in CI. The root `package.json` also declares compatibility with `^22.13.0`, `^24.3.0`, and `>=26.0.0`; CI does not test Node 22 or 26. If `nvm` is available, run:
 
 ```bash
 nvm install
@@ -251,7 +251,7 @@ Privacy check: I removed passwords, tokens, cookies, QR payloads, and personal d
 
 ## Local development
 
-Use Node 24 (the repository includes `.nvmrc`), Python 3.12+, uv, and Docker for dependencies.
+Use the recommended Node.js 24 from `.nvmrc`, Python 3.12+, uv, and Docker for dependencies.
 
 ```bash
 docker compose up -d postgres redis minio mailpit
