@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import { ErrorBlock, LoadingBlock, Surface } from "@/components/ui";
 import { apiFetch } from "@/lib/api";
+import { notificationText } from "@/lib/notificationText";
 import { useAuth } from "@/providers/AuthProvider";
 
 interface NotificationItem {
@@ -12,7 +13,14 @@ interface NotificationItem {
   type: string;
   title: string;
   body: string;
-  data: { case_id?: string; event_id?: string; order_id?: string };
+  data: {
+    case_id?: string;
+    event_id?: string;
+    order_id?: string;
+    order_number?: string;
+    ticket_count?: number;
+    outcome?: string;
+  };
   read_at?: string;
   created_at: string;
 }
@@ -59,13 +67,14 @@ export default function NotificationsPage() {
                 params: { id: item.data.event_id },
               }
             : undefined;
+        const message = notificationText(item, i18n.language);
         const content = (
           <Surface
             className={`gap-2 ${item.read_at ? "opacity-70" : "border-aqua"}`}
           >
             <View className="flex-row items-start justify-between gap-3">
               <Text className="flex-1 text-lg font-black text-ink">
-                {item.title}
+                {message.title}
               </Text>
               {!item.read_at ? (
                 <View className="rounded-full bg-aqua px-2 py-1">
@@ -75,7 +84,7 @@ export default function NotificationsPage() {
                 </View>
               ) : null}
             </View>
-            <Text className="leading-6 text-muted">{item.body}</Text>
+            <Text className="leading-6 text-muted">{message.body}</Text>
             <Text className="text-xs text-muted">
               {new Date(item.created_at).toLocaleString(i18n.language)}
             </Text>
