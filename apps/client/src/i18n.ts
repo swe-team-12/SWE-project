@@ -47,6 +47,7 @@ const en = {
   },
   ui: {
     language: "Language",
+    navigation: "Navigation",
     somethingWrong: "Something went wrong",
     heroTitle: "Events worth showing up for.",
     heroBody:
@@ -379,6 +380,7 @@ const ru = {
   },
   ui: {
     language: "Язык",
+    navigation: "Навигация",
     somethingWrong: "Что-то пошло не так",
     heroTitle: "События, на которые хочется прийти.",
     heroBody:
@@ -711,6 +713,7 @@ const kk = {
   },
   ui: {
     language: "Тіл",
+    navigation: "Бөлімдер",
     somethingWrong: "Қате орын алды",
     heroTitle: "Баруға тұрарлық іс-шаралар.",
     heroBody:

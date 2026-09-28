@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import {
   createContext,
   PropsWithChildren,
@@ -23,12 +24,14 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: PropsWithChildren) {
+  const queryClient = useQueryClient();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     bootstrapSession()
       .then((tokens) => setUser(tokens?.user ?? null))
+      .catch(() => setUser(null))
       .finally(() => setLoading(false));
   }, []);
 
@@ -48,8 +51,8 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }, []);
 
   const logout = useCallback(async () => {
-    const refreshToken = await getRefreshToken();
     try {
+      const refreshToken = await getRefreshToken();
       await apiFetch<void>("/auth/logout", {
         method: "POST",
         body: JSON.stringify({ refresh_token: refreshToken }),
@@ -57,10 +60,11 @@ export function AuthProvider({ children }: PropsWithChildren) {
       });
     } finally {
       setAccessToken(null);
-      await setRefreshToken();
       setUser(null);
+      queryClient.clear();
+      await setRefreshToken();
     }
-  }, []);
+  }, [queryClient]);
 
   const refreshUser = useCallback(async () => {
     setUser(await apiFetch<User>("/auth/me"));

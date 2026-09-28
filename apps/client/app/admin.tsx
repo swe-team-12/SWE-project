@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { Platform, ScrollView, Text, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -11,7 +11,8 @@ import {
   StatusBadge,
   Surface,
 } from "@/components/ui";
-import { API_URL, apiFetch, currentAccessToken } from "@/lib/api";
+import { apiFetch } from "@/lib/api";
+import { downloadAuthenticatedFile } from "@/lib/files";
 import { useAuth } from "@/providers/AuthProvider";
 import { formatKzt } from "@/utils/format";
 
@@ -50,19 +51,11 @@ interface ActivationItem {
 }
 
 async function downloadReport() {
-  const response = await fetch(`${API_URL}/admin/reports/operations.csv`, {
-    headers: { Authorization: `Bearer ${currentAccessToken()}` },
-  });
-  if (!response.ok) throw new Error("Report download failed");
-  if (Platform.OS === "web") {
-    const blob = await response.blob();
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = "biletflow-operations.csv";
-    anchor.click();
-    URL.revokeObjectURL(url);
-  }
+  await downloadAuthenticatedFile(
+    "/admin/reports/operations.csv",
+    "biletflow-operations.csv",
+    "text/csv",
+  );
 }
 
 export default function AdminPage() {
@@ -71,6 +64,7 @@ export default function AdminPage() {
   const [search, setSearch] = useState("");
   const [submitted, setSubmitted] = useState("");
   const [activationFee, setActivationFee] = useState("5000");
+  const report = useMutation({ mutationFn: downloadReport });
   const results = useQuery({
     queryKey: ["admin-search", submitted],
     queryFn: () =>
@@ -262,8 +256,15 @@ export default function AdminPage() {
             <Button
               label={t("ui.downloadCsv")}
               variant="secondary"
-              onPress={() => void downloadReport()}
+              onPress={() => report.mutate()}
+              loading={report.isPending}
             />
+            {report.error ? (
+              <ErrorBlock
+                message={report.error.message}
+                retry={() => report.mutate()}
+              />
+            ) : null}
           </Surface>
         </View>
       </View>

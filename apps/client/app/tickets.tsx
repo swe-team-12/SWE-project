@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { File, Paths } from "expo-file-system";
 import { Link } from "expo-router";
 import * as Sharing from "expo-sharing";
@@ -54,6 +54,7 @@ export default function TicketsPage() {
     queryFn: () => apiFetch<Ticket[]>("/tickets"),
     enabled: !!user,
   });
+  const download = useMutation({ mutationFn: downloadPdf });
   if (!user) {
     return (
       <Surface className="mx-auto mt-8 max-w-xl gap-4">
@@ -86,6 +87,14 @@ export default function TicketsPage() {
           retry={() => void query.refetch()}
         />
       ) : null}
+      {download.error ? (
+        <ErrorBlock
+          message={download.error.message}
+          retry={() => {
+            if (download.variables) download.mutate(download.variables);
+          }}
+        />
+      ) : null}
       <View className="flex-row flex-wrap gap-5">
         {query.data?.map((ticket) => (
           <Surface className="min-w-72 flex-1 gap-5" key={ticket.id}>
@@ -116,7 +125,8 @@ export default function TicketsPage() {
             <Button
               label={t("ui.downloadPrint")}
               variant="secondary"
-              onPress={() => void downloadPdf(ticket)}
+              onPress={() => download.mutate(ticket)}
+              loading={download.isPending && download.variables?.id === ticket.id}
             />
           </Surface>
         ))}
