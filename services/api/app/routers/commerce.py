@@ -526,7 +526,7 @@ async def confirm_checkout(
             type=NotificationType.PAYMENT_FAILED,
             title="Demonstration payment failed",
             body="No ticket was issued. Start checkout again.",
-            data={"event_id": str(event.id)},
+            data={"event_id": str(event.id), "outcome": payload.outcome},
         )
         await db.commit()
         enqueue_email(
@@ -610,7 +610,11 @@ async def confirm_checkout(
         type=NotificationType.ORDER_CONFIRMED,
         title="Your BiletFlow order is confirmed",
         body=f"Order {order.order_number} contains {len(issued)} ticket(s).",
-        data={"order_id": str(order.id)},
+        data={
+            "order_id": str(order.id),
+            "order_number": order.order_number,
+            "ticket_count": len(issued),
+        },
     )
     await record_audit(
         db,

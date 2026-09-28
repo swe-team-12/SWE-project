@@ -49,6 +49,9 @@ make verify
 make concurrency
 ```
 
+The first run builds the pinned MinIO community source release locally because its former
+container registry tags are no longer reliably pullable. Later runs reuse Docker's build cache.
+
 Open:
 
 - Universal web app: <http://localhost:8081>
