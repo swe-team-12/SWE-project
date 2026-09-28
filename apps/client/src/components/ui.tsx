@@ -87,7 +87,8 @@ export function Field({ label, error, ...props }: FieldProps) {
       <TextInput
         accessibilityLabel={label}
         placeholderTextColor="#829AB1"
-        className={`min-h-12 rounded-2xl border bg-white px-4 py-3 text-base text-ink ${error ? "border-danger" : "border-line"}`}
+        textAlignVertical={props.multiline ? "top" : "center"}
+        className={`${props.multiline ? "min-h-12 py-3" : "h-12 py-0"} rounded-2xl border bg-white px-4 text-base leading-6 text-ink ${error ? "border-danger" : "border-line"}`}
         {...props}
       />
       {error ? <Text className="text-sm text-danger">{error}</Text> : null}

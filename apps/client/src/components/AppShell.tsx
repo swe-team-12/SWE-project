@@ -1,4 +1,4 @@
-import { Link, usePathname } from "expo-router";
+import { Link, router, usePathname } from "expo-router";
 import { PropsWithChildren } from "react";
 import {
   Pressable,
@@ -32,6 +32,10 @@ export function AppShell({ children }: PropsWithChildren) {
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const desktop = width >= 920;
+  const handleSignOut = async () => {
+    await logout().catch(() => undefined);
+    router.replace("/");
+  };
   const visible = links.filter(
     (link) =>
       !link.roles.length ||
@@ -71,7 +75,8 @@ export function AppShell({ children }: PropsWithChildren) {
           <Link href={link.href} asChild key={link.href}>
             <Pressable
               accessibilityRole="link"
-              className={`min-h-11 justify-center rounded-xl px-4 ${active ? "bg-brand" : "bg-transparent"}`}
+              accessibilityState={{ selected: active }}
+              className={`min-h-11 justify-center rounded-xl border-l-4 px-4 ${active ? "border-brand bg-brand" : "border-transparent bg-transparent"}`}
             >
               <Text
                 className={`font-bold ${active ? "text-white" : "text-ink"}`}
@@ -108,7 +113,8 @@ export function AppShell({ children }: PropsWithChildren) {
             </View>
             {user ? (
               <Pressable
-                onPress={() => void logout()}
+                accessibilityRole="button"
+                onPress={() => void handleSignOut()}
                 className="min-h-11 justify-center rounded-xl border border-white/30 px-4"
               >
                 <Text className="font-bold text-white">
@@ -134,14 +140,21 @@ export function AppShell({ children }: PropsWithChildren) {
           className="h-16 max-h-16 border-b border-line bg-white"
           contentContainerClassName="items-center gap-3 px-3 py-2"
         >
-          {languagePicker}
           {navigation}
+          {languagePicker}
         </ScrollView>
       ) : null}
       <View
         className={`mx-auto w-full max-w-7xl flex-1 ${desktop ? "flex-row gap-8 p-8" : "p-4"}`}
       >
-        {desktop ? <View className="pt-2">{navigation}</View> : null}
+        {desktop ? (
+          <View className="gap-3 pt-2">
+            <Text className="px-4 text-xs font-black uppercase tracking-wider text-muted">
+              {t("ui.navigation")}
+            </Text>
+            {navigation}
+          </View>
+        ) : null}
         <View className="min-w-0 flex-1">{children}</View>
       </View>
     </View>

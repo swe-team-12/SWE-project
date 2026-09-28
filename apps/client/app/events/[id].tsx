@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link, useLocalSearchParams } from "expo-router";
 import {
   ImageBackground,
@@ -40,6 +40,16 @@ export default function EventPage() {
         `/events/${id}/calendar-links`,
       ),
     enabled: !!event,
+  });
+  const calendarDownload = useMutation({
+    mutationFn: () => {
+      if (!event) throw new Error(t("ui.eventNotFound"));
+      return downloadAuthenticatedFile(
+        `/events/${event.id}/calendar.ics`,
+        `${event.slug}.ics`,
+        "text/calendar",
+      );
+    },
   });
   useEffect(() => {
     if (event?.id) {
@@ -171,14 +181,15 @@ export default function EventPage() {
           <Button
             label={t("ui.downloadIcs")}
             variant="secondary"
-            onPress={() =>
-              void downloadAuthenticatedFile(
-                `/events/${event.id}/calendar.ics`,
-                `${event.slug}.ics`,
-                "text/calendar",
-              )
-            }
+            onPress={() => calendarDownload.mutate()}
+            loading={calendarDownload.isPending}
           />
+          {calendarDownload.error ? (
+            <ErrorBlock
+              message={calendarDownload.error.message}
+              retry={() => calendarDownload.mutate()}
+            />
+          ) : null}
           <View className="flex-row flex-wrap gap-2">
             {(["google", "outlook", "yahoo"] as const).map((provider) => (
               <Button

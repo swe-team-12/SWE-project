@@ -95,12 +95,14 @@ export default function SupportDetailPage() {
       }),
     onSuccess: () => query.refetch(),
   });
-  const download = async (attachmentId: string) => {
-    const result = await apiFetch<{ url: string }>(
-      `/support/attachments/${attachmentId}/download`,
-    );
-    await Linking.openURL(result.url);
-  };
+  const download = useMutation({
+    mutationFn: async (attachmentId: string) => {
+      const result = await apiFetch<{ url: string }>(
+        `/support/attachments/${attachmentId}/download`,
+      );
+      await Linking.openURL(result.url);
+    },
+  });
   if (query.isLoading) return <LoadingBlock />;
   if (query.error || !query.data)
     return (
@@ -156,7 +158,8 @@ export default function SupportDetailPage() {
                   key={item.id}
                   label={item.name}
                   variant="secondary"
-                  onPress={() => void download(item.id)}
+                  onPress={() => download.mutate(item.id)}
+                  loading={download.isPending && download.variables === item.id}
                 />
               ))}
               <Text
@@ -168,6 +171,14 @@ export default function SupportDetailPage() {
           );
         })}
       </Surface>
+      {download.error ? (
+        <ErrorBlock
+          message={download.error.message}
+          retry={() => {
+            if (download.variables) download.mutate(download.variables);
+          }}
+        />
+      ) : null}
       <Surface className="gap-4">
         <Field
           label={t("ui.reply")}

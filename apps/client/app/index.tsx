@@ -19,7 +19,10 @@ export default function DiscoverPage() {
       ),
   });
   return (
-    <ScrollView contentContainerClassName="gap-8 pb-16">
+    <ScrollView
+      showsVerticalScrollIndicator={false}
+      contentContainerClassName="gap-8 pb-16"
+    >
       <View className="overflow-hidden rounded-[32px] bg-ink p-7 md:p-12">
         <View className="max-w-3xl gap-5">
           <View className="self-start rounded-full bg-aqua px-4 py-2">
