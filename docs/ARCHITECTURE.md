@@ -4,6 +4,30 @@
 
 BiletFlow is a modular monolith. FastAPI routers separate authentication, events, commerce, tickets/calendar, scanner, support, analytics/history, and administration, while one SQLAlchemy model graph and one PostgreSQL transaction boundary preserve consistency. This avoids distributed transaction complexity in the academic scope while keeping modules separable later.
 
+```mermaid
+flowchart LR
+    client[Expo client<br/>iOS, Android, web]
+    api[FastAPI API<br/>modular monolith]
+    db[(PostgreSQL<br/>authoritative data)]
+    redis[(Redis<br/>Celery broker and pub/sub)]
+    worker[Celery worker and beat]
+    minio[(MinIO<br/>private objects)]
+    mailpit[Mailpit<br/>local SMTP and inbox]
+
+    client -->|REST /api/v1| api
+    client <-->|Support WebSocket| api
+    api -->|Transactions and row locks| db
+    api <-->|Publish and subscribe support events| redis
+    api -->|Queue background jobs| redis
+    redis -->|Deliver jobs| worker
+    worker -->|Read and update records| db
+    api -->|Upload and sign private objects| minio
+    worker -->|Store ticket PDFs| minio
+    worker -->|Send local email via SMTP| mailpit
+```
+
+The API owns the support WebSocket connection at `/api/v1/support/cases/{case_id}/ws` and uses Redis pub/sub to fan out case updates. Redis also brokers Celery jobs; the worker handles scheduled checkout expiry and payouts, ticket delivery, and optional analytics jobs. Mailpit captures email in the local Docker stack.
+
 The Expo Router client uses TypeScript, React Native Web, NativeWind, TanStack Query, React Hook Form, i18next, Expo Camera, Expo SecureStore, Expo SQLite, and React Native SVG. It does not calculate trusted prices or determine admission validity.
 
 ## Critical transaction boundaries
@@ -46,4 +70,3 @@ Celery uses Redis for ticket PDF/email delivery, expired checkout release, payou
 ## Production transition checklist
 
 Before production, replace every example secret, enforce HTTPS origins, move secrets into a manager, add managed PostgreSQL backups and restore drills, choose regulated payment/KYC providers, complete legal and threat-model reviews, add malware scanning for attachments, define retention policy, add observability/alerting, run load and penetration tests, and complete native store release engineering.
-
