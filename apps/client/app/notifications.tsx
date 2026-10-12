@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import { ErrorBlock, LoadingBlock, Surface } from "@/components/ui";
 import { apiFetch } from "@/lib/api";
+import { notificationHref } from "@/lib/notificationHref";
 import { notificationText } from "@/lib/notificationText";
 import { useAuth } from "@/providers/AuthProvider";
 
@@ -56,17 +57,7 @@ export default function NotificationsPage() {
         </Text>
       </View>
       {query.data?.map((item) => {
-        const href = item.data.case_id
-          ? {
-              pathname: "/support/[id]" as const,
-              params: { id: item.data.case_id },
-            }
-          : item.data.event_id
-            ? {
-                pathname: "/events/[id]" as const,
-                params: { id: item.data.event_id },
-              }
-            : undefined;
+        const href = notificationHref(item);
         const message = notificationText(item, i18n.language);
         const content = (
           <Surface
