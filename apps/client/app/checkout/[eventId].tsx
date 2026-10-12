@@ -35,6 +35,22 @@ interface CheckoutSession {
   total_tiyin: number;
 }
 
+// Keep client-generated notices as translation keys so they re-render in the
+// active language; server-provided problem details are shown as received.
+type CheckoutNotice = { key: string } | { text: string };
+
+class CheckoutValidationError extends Error {
+  constructor(readonly key: string) {
+    super(key);
+  }
+}
+
+function toNotice(error: unknown, fallbackKey: string): CheckoutNotice {
+  if (error instanceof CheckoutValidationError) return { key: error.key };
+  if (error instanceof Error && error.message) return { text: error.message };
+  return { key: fallbackKey };
+}
+
 export default function CheckoutPage() {
   const { t, i18n } = useTranslation();
   const {
@@ -57,7 +73,7 @@ export default function CheckoutPage() {
   const [attendeeEmail, setAttendeeEmail] = useState(user?.email ?? "");
   const [promo, setPromo] = useState(initialPromo ?? "");
   const [createdSession, setSession] = useState(draft.session);
-  const [message, setMessage] = useState<string>();
+  const [message, setMessage] = useState<CheckoutNotice>();
   // The session id lives in the URL so a reload can resume the held reservation.
   const restoredQuery = useQuery({
     queryKey: ["checkout-session", sessionId],
@@ -68,15 +84,17 @@ export default function CheckoutPage() {
   const restored = restoredQuery.data;
   const session =
     createdSession ?? (restored?.status === "open" ? restored : undefined);
-  const restoredMessage = restoredQuery.error
-    ? restoredQuery.error.message
+  const restoredMessage: CheckoutNotice | undefined = restoredQuery.error
+    ? { text: restoredQuery.error.message }
     : restored && restored.status !== "open"
-      ? t(
-          restored.status === "expired"
-            ? "ui.checkoutExpired"
-            : "ui.checkoutClosed",
-        )
+      ? {
+          key:
+            restored.status === "expired"
+              ? "ui.checkoutExpired"
+              : "ui.checkoutClosed",
+        }
       : undefined;
+  const notice = message ?? restoredMessage;
   const eventQuery = useQuery({
     queryKey: ["event", eventId],
     queryFn: () => apiFetch<EventItem>(`/events/${eventId}`),
@@ -108,9 +126,10 @@ export default function CheckoutPage() {
 
   const reserve = useMutation({
     mutationFn: async () => {
-      if (!event || !ticketTypeId) throw new Error(t("ui.chooseTicketType"));
+      if (!event || !ticketTypeId)
+        throw new CheckoutValidationError("ui.chooseTicketType");
       if (event.seating_mode === "assigned" && !seatId)
-        throw new Error(t("ui.chooseSeat"));
+        throw new CheckoutValidationError("ui.chooseSeat");
       return apiFetch<CheckoutSession>("/checkout/sessions", {
         method: "POST",
         body: JSON.stringify({
@@ -138,8 +157,7 @@ export default function CheckoutPage() {
         route: "/checkout/[eventId]",
       });
     },
-    onError: (error) =>
-      setMessage(error instanceof Error ? error.message : "Reservation failed"),
+    onError: (error) => setMessage(toNotice(error, "ui.reservationFailed")),
   });
 
   const confirm = useMutation({
@@ -165,9 +183,7 @@ export default function CheckoutPage() {
       router.replace("/tickets");
     },
     onError: (error) => {
-      setMessage(
-        error instanceof Error ? error.message : "Payment simulation failed",
-      );
+      setMessage(toNotice(error, "ui.paymentSimulationFailed"));
       setSession(undefined);
       router.setParams({ session: undefined });
     },
@@ -392,9 +408,9 @@ export default function CheckoutPage() {
               {t("ui.promoOptional")}: {promo}
             </Text>
           ) : null}
-          {message || restoredMessage ? (
+          {notice ? (
             <Text className="rounded-xl bg-red-50 p-3 text-danger">
-              {message ?? restoredMessage}
+              {"key" in notice ? t(notice.key) : notice.text}
             </Text>
           ) : null}
           {!session ? (
