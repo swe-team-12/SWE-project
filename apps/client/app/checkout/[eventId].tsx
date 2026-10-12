@@ -20,6 +20,7 @@ import {
   loadCheckoutDraft,
   saveCheckoutDraft,
 } from "@/lib/checkoutDraft";
+import { eventContentText } from "@/lib/eventContentText";
 import { useAuth } from "@/providers/AuthProvider";
 import type { EventItem, Seat } from "@/types";
 import { formatKzt, newIdempotencyKey } from "@/utils/format";
@@ -237,7 +238,10 @@ export default function CheckoutPage() {
                               {item.name}
                             </Text>
                             <Text className="text-sm text-muted">
-                              {item.description}
+                              {eventContentText(
+                                item.description,
+                                i18n.language,
+                              )}
                             </Text>
                           </View>
                           <Text className="font-black text-ink">
