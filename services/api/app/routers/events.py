@@ -345,7 +345,7 @@ async def update_event(
                 type=NotificationType.EVENT_UPDATED,
                 title=f"{event.title} was updated",
                 body="Review the latest event date, time, and venue details.",
-                data={"event_id": str(event.id)},
+                data={"event_id": str(event.id), "event_title": event.title},
             )
             attendee_emails.append(attendee_email)
     await db.commit()
