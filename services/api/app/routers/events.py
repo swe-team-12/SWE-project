@@ -4,7 +4,7 @@ import uuid
 from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, File, Query, UploadFile
-from sqlalchemy import func, or_, select
+from sqlalchemy import case, func, or_, select
 from sqlalchemy.orm import selectinload
 
 from app.access import get_event_or_404, require_event_permission, require_event_view_access
@@ -156,16 +156,24 @@ async def list_public_events(
             Event.visibility == EventVisibility.PUBLIC,
             Event.ends_at >= datetime.now(UTC),
         )
-        .order_by(Event.starts_at, Event.id)
         .limit(limit)
     )
     if q:
-        pattern = f"%{q.strip()}%"
+        term = q.strip()
+        escaped = term.replace("/", "//").replace("%", "/%").replace("_", "/_")
+        pattern = f"%{escaped}%"
         statement = statement.where(
             or_(
-                Event.title.ilike(pattern),
-                Event.description.ilike(pattern),
-                Event.venue_name.ilike(pattern),
+                Event.title.ilike(pattern, escape="/"),
+                Event.description.ilike(pattern, escape="/"),
+                Event.venue_name.ilike(pattern, escape="/"),
+            )
+        ).order_by(
+            case(
+                (func.lower(Event.title) == func.lower(term), 0),
+                (Event.title.ilike(f"{escaped}%", escape="/"), 1),
+                (Event.title.ilike(pattern, escape="/"), 2),
+                else_=3,
             )
         )
     if city:
@@ -174,6 +182,7 @@ async def list_public_events(
         statement = statement.where(Event.category == category)
     if starts_after:
         statement = statement.where(Event.starts_at > starts_after)
+    statement = statement.order_by(Event.starts_at, Event.id)
     events = (await db.scalars(statement)).unique().all()
     return [serialize_event(event) for event in events]
 
