@@ -233,7 +233,10 @@ export default function AdminPage() {
             <Field
               label={t("ui.activationFee")}
               value={activationFee}
-              onChangeText={setActivationFee}
+              onChangeText={(value) => {
+                setActivationFee(value);
+                fee.reset();
+              }}
               keyboardType="numeric"
             />
             <Button
