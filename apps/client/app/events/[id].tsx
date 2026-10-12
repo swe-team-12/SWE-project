@@ -21,6 +21,7 @@ import {
 import { apiFetch } from "@/lib/api";
 import { captureAnalytics } from "@/lib/analytics";
 import { downloadAuthenticatedFile } from "@/lib/files";
+import { placeText } from "@/lib/placeText";
 import type { EventItem } from "@/types";
 import { formatKzt } from "@/utils/format";
 
@@ -121,14 +122,18 @@ export default function EventPage() {
               timeStyle: "short",
             }).format(new Date(event.starts_at))}
           </Text>
-          <Text className="text-muted">{event.timezone}</Text>
+          <Text className="text-muted">
+            {placeText(event.timezone, i18n.language)}
+          </Text>
         </Surface>
         <Surface className="min-w-64 flex-1 gap-2">
           <Text className="text-xs font-black uppercase text-muted">
             {t("common.venue")}
           </Text>
           <Text className="text-xl font-bold text-ink">{event.venue_name}</Text>
-          <Text className="text-muted">{event.venue_address}</Text>
+          <Text className="text-muted">
+            {placeText(event.venue_address, i18n.language)}
+          </Text>
         </Surface>
       </View>
       <Surface className="gap-5">
