@@ -20,6 +20,7 @@ import {
   Surface,
 } from "@/components/ui";
 import { API_URL, apiFetch, currentAccessToken } from "@/lib/api";
+import { saveBlobOnWeb } from "@/lib/files";
 import { useAuth } from "@/providers/AuthProvider";
 import type { Ticket } from "@/types";
 
@@ -30,12 +31,7 @@ async function downloadPdf(ticket: Ticket) {
   if (!response.ok) throw new Error("Could not generate the ticket PDF.");
   const blob = await response.blob();
   if (Platform.OS === "web") {
-    const url = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = `${ticket.ticket_code}.pdf`;
-    anchor.click();
-    URL.revokeObjectURL(url);
+    saveBlobOnWeb(blob, `${ticket.ticket_code}.pdf`);
     return;
   }
   const file = new File(Paths.cache, `${ticket.ticket_code}.pdf`);
