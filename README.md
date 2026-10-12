@@ -43,6 +43,10 @@ All identifiers are UUIDs. Monetary values use integer KZT minor units (`tiyin`)
 
 Requirements: Docker Desktop with Compose v2.
 
+The first build compiles the pinned MinIO community release from source because its
+upstream container image is no longer available for a fresh pull. Subsequent builds
+reuse Docker's cache.
+
 ```bash
 make demo
 make verify
