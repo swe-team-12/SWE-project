@@ -1,4 +1,4 @@
-import { render, userEvent } from "@testing-library/react-native";
+import { act, render, userEvent } from "@testing-library/react-native";
 
 import i18n from "@/i18n";
 import { SeatMap } from "../SeatMap";
@@ -16,7 +16,11 @@ const seat = {
 };
 
 describe("SeatMap", () => {
-  beforeAll(async () => {
+  beforeEach(async () => {
+    await i18n.changeLanguage("en");
+  });
+
+  afterAll(async () => {
     await i18n.changeLanguage("en");
   });
 
@@ -51,4 +55,45 @@ describe("SeatMap", () => {
       ).props.accessibilityState,
     ).toEqual({ checked: true, disabled: false });
   });
+
+  it.each([
+    [
+      "ru",
+      ["Свободно", "Выбрано", "В резерве", "Продано", "Недоступно"],
+      "СЦЕНА",
+      "Доступный список",
+      "Схема",
+      "Сектор A, ряд B, место 7, премиум, доступное место, Свободно",
+    ],
+    [
+      "kk",
+      ["Бос", "Таңдалды", "Сақталды", "Сатылды", "Қолжетімсіз"],
+      "САХНА",
+      "Қолжетімді тізім",
+      "Көрнекі карта",
+      "A секторы, B қатары, 7 орны, премиум, қолжетімді орын, Бос",
+    ],
+  ])(
+    "updates seat labels after switching the language to %s (#17)",
+    async (language, legend, stage, listToggle, mapToggle, seatLabel) => {
+      const screen = await render(
+        <SeatMap seats={[seat]} selected={[]} onSelect={jest.fn()} />,
+      );
+      expect(screen.getByText("Available")).toBeTruthy();
+
+      await act(async () => {
+        await i18n.changeLanguage(language);
+      });
+
+      for (const label of legend) expect(screen.getByText(label)).toBeTruthy();
+      expect(screen.queryByText("Available")).toBeNull();
+      const tree = JSON.stringify(screen.toJSON());
+      expect(tree).toContain(stage);
+      expect(tree).not.toContain("STAGE");
+      const user = userEvent.setup();
+      await user.press(screen.getByText(listToggle));
+      expect(screen.getByText(mapToggle)).toBeTruthy();
+      expect(screen.getByLabelText(seatLabel)).toBeTruthy();
+    },
+  );
 });

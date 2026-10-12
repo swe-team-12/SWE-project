@@ -281,6 +281,8 @@ const en = {
     standardSeatCategory: "standard",
     accessibleSeatCategory: "accessible",
     accessibleSeatSuffix: ", accessible seat",
+    reservationFailed: "Reservation failed",
+    paymentSimulationFailed: "Payment simulation failed",
     reverseCheckIn: "Reverse check-in",
   },
   status: {
@@ -614,6 +616,8 @@ const ru = {
     standardSeatCategory: "стандарт",
     accessibleSeatCategory: "доступное",
     accessibleSeatSuffix: ", доступное место",
+    reservationFailed: "Не удалось зарезервировать",
+    paymentSimulationFailed: "Не удалось выполнить демо-оплату",
     reverseCheckIn: "Отменить отметку входа",
   },
   status: {
@@ -949,6 +953,8 @@ const kk = {
     standardSeatCategory: "стандарт",
     accessibleSeatCategory: "қолжетімді",
     accessibleSeatSuffix: ", қолжетімді орын",
+    reservationFailed: "Брондау сәтсіз аяқталды",
+    paymentSimulationFailed: "Демо төлем сәтсіз аяқталды",
     reverseCheckIn: "Кіру белгісін қайтару",
   },
   status: {

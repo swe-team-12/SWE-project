@@ -27,6 +27,22 @@ interface CheckoutSession {
   total_tiyin: number;
 }
 
+// Keep client-generated notices as translation keys so they re-render in the
+// active language; server-provided problem details are shown as received.
+type CheckoutNotice = { key: string } | { text: string };
+
+class CheckoutValidationError extends Error {
+  constructor(readonly key: string) {
+    super(key);
+  }
+}
+
+function toNotice(error: unknown, fallbackKey: string): CheckoutNotice {
+  if (error instanceof CheckoutValidationError) return { key: error.key };
+  if (error instanceof Error && error.message) return { text: error.message };
+  return { key: fallbackKey };
+}
+
 export default function CheckoutPage() {
   const { t, i18n } = useTranslation();
   const { eventId, promo: initialPromo } = useLocalSearchParams<{
@@ -41,7 +57,7 @@ export default function CheckoutPage() {
   const [attendeeEmail, setAttendeeEmail] = useState(user?.email ?? "");
   const [promo, setPromo] = useState(initialPromo ?? "");
   const [session, setSession] = useState<CheckoutSession>();
-  const [message, setMessage] = useState<string>();
+  const [message, setMessage] = useState<CheckoutNotice>();
   const eventQuery = useQuery({
     queryKey: ["event", eventId],
     queryFn: () => apiFetch<EventItem>(`/events/${eventId}`),
@@ -60,9 +76,10 @@ export default function CheckoutPage() {
 
   const reserve = useMutation({
     mutationFn: async () => {
-      if (!event || !ticketTypeId) throw new Error(t("ui.chooseTicketType"));
+      if (!event || !ticketTypeId)
+        throw new CheckoutValidationError("ui.chooseTicketType");
       if (event.seating_mode === "assigned" && !seatId)
-        throw new Error(t("ui.chooseSeat"));
+        throw new CheckoutValidationError("ui.chooseSeat");
       return apiFetch<CheckoutSession>("/checkout/sessions", {
         method: "POST",
         body: JSON.stringify({
@@ -89,8 +106,7 @@ export default function CheckoutPage() {
         route: "/checkout/[eventId]",
       });
     },
-    onError: (error) =>
-      setMessage(error instanceof Error ? error.message : "Reservation failed"),
+    onError: (error) => setMessage(toNotice(error, "ui.reservationFailed")),
   });
 
   const confirm = useMutation({
@@ -115,9 +131,7 @@ export default function CheckoutPage() {
       router.replace("/tickets");
     },
     onError: (error) => {
-      setMessage(
-        error instanceof Error ? error.message : "Payment simulation failed",
-      );
+      setMessage(toNotice(error, "ui.paymentSimulationFailed"));
       setSession(undefined);
     },
   });
@@ -340,7 +354,7 @@ export default function CheckoutPage() {
           ) : null}
           {message ? (
             <Text className="rounded-xl bg-red-50 p-3 text-danger">
-              {message}
+              {"key" in message ? t(message.key) : message.text}
             </Text>
           ) : null}
           {!session ? (
