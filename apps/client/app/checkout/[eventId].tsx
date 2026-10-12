@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, router, useLocalSearchParams } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
@@ -14,12 +14,19 @@ import {
 } from "@/components/ui";
 import { apiFetch } from "@/lib/api";
 import { captureAnalytics } from "@/lib/analytics";
+import {
+  clearCheckoutDraft,
+  isRestorableSeat,
+  loadCheckoutDraft,
+  saveCheckoutDraft,
+} from "@/lib/checkoutDraft";
 import { useAuth } from "@/providers/AuthProvider";
 import type { EventItem, Seat } from "@/types";
 import { formatKzt, newIdempotencyKey } from "@/utils/format";
 
 interface CheckoutSession {
   id: string;
+  status: string;
   expires_at: string;
   subtotal_tiyin: number;
   discount_tiyin: number;
@@ -29,19 +36,46 @@ interface CheckoutSession {
 
 export default function CheckoutPage() {
   const { t, i18n } = useTranslation();
-  const { eventId, promo: initialPromo } = useLocalSearchParams<{
+  const {
+    eventId,
+    promo: initialPromo,
+    session: sessionId,
+  } = useLocalSearchParams<{
     eventId: string;
     promo?: string;
+    session?: string;
   }>();
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [ticketTypeId, setTicketTypeId] = useState<string>();
-  const [seatId, setSeatId] = useState<string>();
+  const [draft] = useState(() =>
+    loadCheckoutDraft<CheckoutSession>(user?.id, eventId),
+  );
+  const [ticketTypeId, setTicketTypeId] = useState(draft.ticketTypeId);
+  const [chosenSeatId, setSeatId] = useState(draft.seatId);
   const [attendeeName, setAttendeeName] = useState(user?.display_name ?? "");
   const [attendeeEmail, setAttendeeEmail] = useState(user?.email ?? "");
   const [promo, setPromo] = useState(initialPromo ?? "");
-  const [session, setSession] = useState<CheckoutSession>();
+  const [createdSession, setSession] = useState(draft.session);
   const [message, setMessage] = useState<string>();
+  // The session id lives in the URL so a reload can resume the held reservation.
+  const restoredQuery = useQuery({
+    queryKey: ["checkout-session", sessionId],
+    queryFn: () => apiFetch<CheckoutSession>(`/checkout/sessions/${sessionId}`),
+    enabled: !!user && !!sessionId && !createdSession,
+    retry: false,
+  });
+  const restored = restoredQuery.data;
+  const session =
+    createdSession ?? (restored?.status === "open" ? restored : undefined);
+  const restoredMessage = restoredQuery.error
+    ? restoredQuery.error.message
+    : restored && restored.status !== "open"
+      ? t(
+          restored.status === "expired"
+            ? "ui.checkoutExpired"
+            : "ui.checkoutClosed",
+        )
+      : undefined;
   const eventQuery = useQuery({
     queryKey: ["event", eventId],
     queryFn: () => apiFetch<EventItem>(`/events/${eventId}`),
@@ -53,10 +87,23 @@ export default function CheckoutPage() {
     enabled: eventQuery.data?.seating_mode === "assigned",
   });
   const event = eventQuery.data;
+  // A remembered seat without an active hold is only kept while the API still
+  // reports it as available; a held seat is shown as the user's selection.
+  const seatId =
+    session ||
+    !seatsQuery.data ||
+    seatsQuery.isFetching ||
+    isRestorableSeat(chosenSeatId, seatsQuery.data)
+      ? chosenSeatId
+      : undefined;
   const selectedSeat = seatsQuery.data?.find((seat) => seat.id === seatId);
   const selectedType = event?.ticket_types.find(
     (item) => item.id === ticketTypeId,
   );
+
+  useEffect(() => {
+    saveCheckoutDraft(user?.id, eventId, { ticketTypeId, seatId, session });
+  }, [user?.id, eventId, ticketTypeId, seatId, session]);
 
   const reserve = useMutation({
     mutationFn: async () => {
@@ -83,6 +130,7 @@ export default function CheckoutPage() {
     },
     onSuccess: (created) => {
       setSession(created);
+      router.setParams({ session: created.id });
       void captureAnalytics("checkout_start", {
         eventId: event?.id,
         source: promo.trim() ? "campaign" : "direct",
@@ -111,6 +159,7 @@ export default function CheckoutPage() {
         source: promo.trim() ? "campaign" : "direct",
         route: "/checkout/[eventId]",
       });
+      clearCheckoutDraft(user?.id, eventId);
       await queryClient.invalidateQueries({ queryKey: ["tickets"] });
       router.replace("/tickets");
     },
@@ -119,6 +168,7 @@ export default function CheckoutPage() {
         error instanceof Error ? error.message : "Payment simulation failed",
       );
       setSession(undefined);
+      router.setParams({ session: undefined });
     },
   });
 
@@ -137,7 +187,7 @@ export default function CheckoutPage() {
       </Surface>
     );
   }
-  if (eventQuery.isLoading) return <LoadingBlock />;
+  if (eventQuery.isLoading || restoredQuery.isLoading) return <LoadingBlock />;
   if (eventQuery.error || !event)
     return (
       <ErrorBlock
@@ -338,9 +388,9 @@ export default function CheckoutPage() {
               {t("ui.promoOptional")}: {promo}
             </Text>
           ) : null}
-          {message ? (
+          {message || restoredMessage ? (
             <Text className="rounded-xl bg-red-50 p-3 text-danger">
-              {message}
+              {message ?? restoredMessage}
             </Text>
           ) : null}
           {!session ? (

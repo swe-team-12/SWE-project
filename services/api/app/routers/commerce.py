@@ -440,6 +440,22 @@ async def create_checkout(
     return session
 
 
+@router.get("/checkout/sessions/{session_id}", response_model=CheckoutOut)
+async def get_checkout(session_id: uuid.UUID, user: CurrentUser, db: DbSession) -> CheckoutSession:
+    session = await db.scalar(
+        select(CheckoutSession).where(
+            CheckoutSession.id == session_id, CheckoutSession.user_id == user.id
+        )
+    )
+    if session is None:
+        raise AppError(404, "checkout_not_found", "Checkout not found", "Start checkout again.")
+    if session.status == CheckoutStatus.OPEN and session.expires_at <= datetime.now(UTC):
+        await expire_checkout_sessions(db, session.event_id)
+        await db.commit()
+        session.status = CheckoutStatus.EXPIRED
+    return session
+
+
 @router.post("/checkout/sessions/{session_id}/confirm")
 async def confirm_checkout(
     session_id: uuid.UUID, payload: CheckoutConfirm, user: CurrentUser, db: DbSession
