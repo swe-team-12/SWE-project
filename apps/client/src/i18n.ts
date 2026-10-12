@@ -45,6 +45,12 @@ const en = {
     manualSearch: "Search attendee or ticket code",
     noResults: "Nothing here yet",
   },
+  eventContent: {
+    defaultRefundPolicy: "Full refunds are available until the event starts.",
+    premiumTicket: "Center-section seating with priority entry.",
+    standardTicket: "General assigned seating.",
+    accessibleTicket: "Accessible seating allocation.",
+  },
   ui: {
     language: "Language",
     navigation: "Navigation",
@@ -378,6 +384,13 @@ const ru = {
     manualSearch: "Поиск посетителя или билета",
     noResults: "Пока ничего нет",
   },
+  eventContent: {
+    defaultRefundPolicy:
+      "Полный возврат средств доступен до начала мероприятия.",
+    premiumTicket: "Места в центральной секции и приоритетный вход.",
+    standardTicket: "Стандартные места с назначенной рассадкой.",
+    accessibleTicket: "Места для посетителей с ограниченной мобильностью.",
+  },
   ui: {
     language: "Язык",
     navigation: "Навигация",
@@ -710,6 +723,13 @@ const kk = {
     scanInstruction: "Камераны билет QR-кодына бағыттаңыз",
     manualSearch: "Қатысушыны немесе билетті іздеу",
     noResults: "Әзірге бос",
+  },
+  eventContent: {
+    defaultRefundPolicy:
+      "Іс-шара басталғанға дейін ақшаны толық қайтаруға болады.",
+    premiumTicket: "Орталық секциядағы орындар және басымдықпен кіру.",
+    standardTicket: "Белгіленген стандартты орындар.",
+    accessibleTicket: "Қозғалысы шектеулі келушілерге арналған орындар.",
   },
   ui: {
     language: "Тіл",

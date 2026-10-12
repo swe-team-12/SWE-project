@@ -14,6 +14,7 @@ import {
 } from "@/components/ui";
 import { apiFetch } from "@/lib/api";
 import { captureAnalytics } from "@/lib/analytics";
+import { eventContentText } from "@/lib/eventContentText";
 import { useAuth } from "@/providers/AuthProvider";
 import type { EventItem, Seat } from "@/types";
 import { formatKzt, newIdempotencyKey } from "@/utils/format";
@@ -187,7 +188,10 @@ export default function CheckoutPage() {
                               {item.name}
                             </Text>
                             <Text className="text-sm text-muted">
-                              {item.description}
+                              {eventContentText(
+                                item.description,
+                                i18n.language,
+                              )}
                             </Text>
                           </View>
                           <Text className="font-black text-ink">
