@@ -132,7 +132,7 @@ async def notify_case_participants(
             type=NotificationType.SUPPORT_MESSAGE,
             title=f"New message in {case.case_number}",
             body=body[:180],
-            data={"case_id": str(case.id)},
+            data={"case_id": str(case.id), "case_number": case.case_number},
         )
 
 
@@ -337,7 +337,12 @@ async def update_case(
         type=NotificationType.SUPPORT_STATUS,
         title=f"Support case {case.case_number} updated",
         body=f"Status changed from {old_status.value} to {case.status.value}.",
-        data={"case_id": str(case.id)},
+        data={
+            "case_id": str(case.id),
+            "case_number": case.case_number,
+            "old_status": old_status.value,
+            "new_status": case.status.value,
+        },
     )
     await record_audit(
         db,
