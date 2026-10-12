@@ -2,6 +2,7 @@ import { Link } from "expo-router";
 import { ImageBackground, Pressable, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { placeText } from "@/lib/placeText";
 import type { EventItem } from "@/types";
 import { formatKzt } from "@/utils/format";
 import { StatusBadge, Surface } from "./ui";
@@ -44,7 +45,7 @@ export function EventCard({ event }: { event: EventItem }) {
           }).format(new Date(event.starts_at))}
         </Text>
         <Text className="text-ink">
-          {event.venue_name} · {event.city}
+          {event.venue_name} · {placeText(event.city, i18n.language)}
         </Text>
         <View className="flex-row items-end justify-between gap-3">
           <View>

@@ -45,6 +45,12 @@ const en = {
     manualSearch: "Search attendee or ticket code",
     noResults: "Nothing here yet",
   },
+  eventContent: {
+    defaultRefundPolicy: "Full refunds are available until the event starts.",
+    premiumTicket: "Center-section seating with priority entry.",
+    standardTicket: "General assigned seating.",
+    accessibleTicket: "Accessible seating allocation.",
+  },
   ui: {
     language: "Language",
     navigation: "Navigation",
@@ -105,6 +111,10 @@ const en = {
     promoOptional: "Promo code (optional)",
     inventoryReserved: "Inventory reserved",
     completeDemoPayment: "Complete the demonstration payment",
+    checkoutExpired:
+      "This reservation expired and the tickets were released. Start a new checkout.",
+    checkoutClosed:
+      "This reservation can no longer be paid. Check My tickets or start a new checkout.",
     demoPaymentNotice:
       "No card details are collected. This records a simulated KZT result only.",
     subtotal: "Subtotal",
@@ -248,6 +258,12 @@ const en = {
     demoPaymentFailedBody: "No ticket was issued. Start checkout again.",
     demoPaymentTimedOutTitle: "Demonstration payment timed out",
     demoPaymentTimedOutBody: "No ticket was issued. Start checkout again.",
+    eventUpdatedTitle: "{{eventTitle}} was updated",
+    eventUpdatedTitleLegacy: "An event you are attending was updated",
+    eventUpdatedBody: "Review the latest event date, time, and venue details.",
+    supportMessageTitle: "New message in {{caseNumber}}",
+    supportStatusTitle: "Support case {{caseNumber}} updated",
+    supportStatusBody: "Status changed from {{oldStatus}} to {{newStatus}}.",
     newBadge: "NEW",
     platformOperations: "Platform operations",
     administration: "Administration",
@@ -281,6 +297,8 @@ const en = {
     standardSeatCategory: "standard",
     accessibleSeatCategory: "accessible",
     accessibleSeatSuffix: ", accessible seat",
+    reservationFailed: "Reservation failed",
+    paymentSimulationFailed: "Payment simulation failed",
     reverseCheckIn: "Reverse check-in",
   },
   status: {
@@ -333,6 +351,11 @@ const en = {
     technical: "Technical",
     activation: "Activation",
   },
+  places: {
+    almaty: "Almaty",
+    abayAvenue44Almaty: "Abay Avenue 44, Almaty",
+    asiaAlmaty: "Asia/Almaty",
+  },
 };
 
 const ru = {
@@ -377,6 +400,13 @@ const ru = {
     scanInstruction: "Наведите камеру на QR-код билета",
     manualSearch: "Поиск посетителя или билета",
     noResults: "Пока ничего нет",
+  },
+  eventContent: {
+    defaultRefundPolicy:
+      "Полный возврат средств доступен до начала мероприятия.",
+    premiumTicket: "Места в центральной секции и приоритетный вход.",
+    standardTicket: "Стандартные места с назначенной рассадкой.",
+    accessibleTicket: "Места для посетителей с ограниченной мобильностью.",
   },
   ui: {
     language: "Язык",
@@ -439,6 +469,10 @@ const ru = {
     promoOptional: "Промокод (необязательно)",
     inventoryReserved: "Билеты зарезервированы",
     completeDemoPayment: "Завершите демонстрационный платёж",
+    checkoutExpired:
+      "Срок брони истёк, билеты освобождены. Начните оформление заново.",
+    checkoutClosed:
+      "Эту бронь уже нельзя оплатить. Проверьте «Мои билеты» или начните оформление заново.",
     demoPaymentNotice:
       "Данные карты не собираются. Записывается только симулированный результат в KZT.",
     subtotal: "Сумма",
@@ -581,6 +615,12 @@ const ru = {
     demoPaymentFailedBody: "Билет не выпущен. Начните оформление заказа заново.",
     demoPaymentTimedOutTitle: "Время демонстрационного платежа истекло",
     demoPaymentTimedOutBody: "Билет не выпущен. Начните оформление заказа заново.",
+    eventUpdatedTitle: "Мероприятие «{{eventTitle}}» обновлено",
+    eventUpdatedTitleLegacy: "Мероприятие, на которое вы идёте, обновлено",
+    eventUpdatedBody: "Проверьте актуальные дату, время и место проведения.",
+    supportMessageTitle: "Новое сообщение в обращении {{caseNumber}}",
+    supportStatusTitle: "Обращение {{caseNumber}} обновлено",
+    supportStatusBody: "Статус изменён: «{{oldStatus}}» → «{{newStatus}}».",
     newBadge: "НОВОЕ",
     platformOperations: "Операции платформы",
     administration: "Администрирование",
@@ -614,6 +654,8 @@ const ru = {
     standardSeatCategory: "стандарт",
     accessibleSeatCategory: "доступное",
     accessibleSeatSuffix: ", доступное место",
+    reservationFailed: "Не удалось зарезервировать",
+    paymentSimulationFailed: "Не удалось выполнить демо-оплату",
     reverseCheckIn: "Отменить отметку входа",
   },
   status: {
@@ -666,6 +708,11 @@ const ru = {
     technical: "Техническая проблема",
     activation: "Активация",
   },
+  places: {
+    almaty: "Алматы",
+    abayAvenue44Almaty: "проспект Абая, 44, Алматы",
+    asiaAlmaty: "Азия/Алматы",
+  },
 };
 
 const kk = {
@@ -710,6 +757,13 @@ const kk = {
     scanInstruction: "Камераны билет QR-кодына бағыттаңыз",
     manualSearch: "Қатысушыны немесе билетті іздеу",
     noResults: "Әзірге бос",
+  },
+  eventContent: {
+    defaultRefundPolicy:
+      "Іс-шара басталғанға дейін ақшаны толық қайтаруға болады.",
+    premiumTicket: "Орталық секциядағы орындар және басымдықпен кіру.",
+    standardTicket: "Белгіленген стандартты орындар.",
+    accessibleTicket: "Қозғалысы шектеулі келушілерге арналған орындар.",
   },
   ui: {
     language: "Тіл",
@@ -773,6 +827,10 @@ const kk = {
     promoOptional: "Промокод (міндетті емес)",
     inventoryReserved: "Билет сақталды",
     completeDemoPayment: "Демонстрациялық төлемді аяқтаңыз",
+    checkoutExpired:
+      "Брондау мерзімі өтті, билеттер босатылды. Рәсімдеуді қайта бастаңыз.",
+    checkoutClosed:
+      "Бұл брондауды енді төлеу мүмкін емес. «Менің билеттерім» бөлімін тексеріңіз немесе рәсімдеуді қайта бастаңыз.",
     demoPaymentNotice:
       "Карта деректері жиналмайды. Тек KZT-дегі симуляция нәтижесі жазылады.",
     subtotal: "Аралық сома",
@@ -915,6 +973,12 @@ const kk = {
     demoPaymentFailedBody: "Билет шығарылмады. Тапсырысты қайта рәсімдеңіз.",
     demoPaymentTimedOutTitle: "Демонстрациялық төлемнің уақыты аяқталды",
     demoPaymentTimedOutBody: "Билет шығарылмады. Тапсырысты қайта рәсімдеңіз.",
+    eventUpdatedTitle: "«{{eventTitle}}» іс-шарасы жаңартылды",
+    eventUpdatedTitleLegacy: "Сіз қатысатын іс-шара жаңартылды",
+    eventUpdatedBody: "Іс-шараның соңғы күнін, уақытын және өтетін орнын тексеріңіз.",
+    supportMessageTitle: "{{caseNumber}} өтінішінде жаңа хабарлама",
+    supportStatusTitle: "{{caseNumber}} өтініші жаңартылды",
+    supportStatusBody: "Күйі өзгерді: «{{oldStatus}}» → «{{newStatus}}».",
     newBadge: "ЖАҢА",
     platformOperations: "Платформа операциялары",
     administration: "Әкімшілік",
@@ -949,6 +1013,8 @@ const kk = {
     standardSeatCategory: "стандарт",
     accessibleSeatCategory: "қолжетімді",
     accessibleSeatSuffix: ", қолжетімді орын",
+    reservationFailed: "Брондау сәтсіз аяқталды",
+    paymentSimulationFailed: "Демо төлем сәтсіз аяқталды",
     reverseCheckIn: "Кіру белгісін қайтару",
   },
   status: {
@@ -1000,6 +1066,11 @@ const kk = {
     account: "Тіркелгі",
     technical: "Техникалық мәселе",
     activation: "Белсендіру",
+  },
+  places: {
+    almaty: "Алматы",
+    abayAvenue44Almaty: "Абай даңғылы, 44, Алматы",
+    asiaAlmaty: "Азия/Алматы",
   },
 };
 
