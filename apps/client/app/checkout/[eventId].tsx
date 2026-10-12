@@ -20,6 +20,7 @@ import { formatKzt, newIdempotencyKey } from "@/utils/format";
 
 interface CheckoutSession {
   id: string;
+  status: string;
   expires_at: string;
   subtotal_tiyin: number;
   discount_tiyin: number;
@@ -29,9 +30,14 @@ interface CheckoutSession {
 
 export default function CheckoutPage() {
   const { t, i18n } = useTranslation();
-  const { eventId, promo: initialPromo } = useLocalSearchParams<{
+  const {
+    eventId,
+    promo: initialPromo,
+    session: sessionId,
+  } = useLocalSearchParams<{
     eventId: string;
     promo?: string;
+    session?: string;
   }>();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -40,8 +46,27 @@ export default function CheckoutPage() {
   const [attendeeName, setAttendeeName] = useState(user?.display_name ?? "");
   const [attendeeEmail, setAttendeeEmail] = useState(user?.email ?? "");
   const [promo, setPromo] = useState(initialPromo ?? "");
-  const [session, setSession] = useState<CheckoutSession>();
+  const [createdSession, setSession] = useState<CheckoutSession>();
   const [message, setMessage] = useState<string>();
+  // The session id lives in the URL so a reload can resume the held reservation.
+  const restoredQuery = useQuery({
+    queryKey: ["checkout-session", sessionId],
+    queryFn: () => apiFetch<CheckoutSession>(`/checkout/sessions/${sessionId}`),
+    enabled: !!user && !!sessionId && !createdSession,
+    retry: false,
+  });
+  const restored = restoredQuery.data;
+  const session =
+    createdSession ?? (restored?.status === "open" ? restored : undefined);
+  const restoredMessage = restoredQuery.error
+    ? restoredQuery.error.message
+    : restored && restored.status !== "open"
+      ? t(
+          restored.status === "expired"
+            ? "ui.checkoutExpired"
+            : "ui.checkoutClosed",
+        )
+      : undefined;
   const eventQuery = useQuery({
     queryKey: ["event", eventId],
     queryFn: () => apiFetch<EventItem>(`/events/${eventId}`),
@@ -83,6 +108,7 @@ export default function CheckoutPage() {
     },
     onSuccess: (created) => {
       setSession(created);
+      router.setParams({ session: created.id });
       void captureAnalytics("checkout_start", {
         eventId: event?.id,
         source: promo.trim() ? "campaign" : "direct",
@@ -119,6 +145,7 @@ export default function CheckoutPage() {
         error instanceof Error ? error.message : "Payment simulation failed",
       );
       setSession(undefined);
+      router.setParams({ session: undefined });
     },
   });
 
@@ -137,7 +164,7 @@ export default function CheckoutPage() {
       </Surface>
     );
   }
-  if (eventQuery.isLoading) return <LoadingBlock />;
+  if (eventQuery.isLoading || restoredQuery.isLoading) return <LoadingBlock />;
   if (eventQuery.error || !event)
     return (
       <ErrorBlock
@@ -338,9 +365,9 @@ export default function CheckoutPage() {
               {t("ui.promoOptional")}: {promo}
             </Text>
           ) : null}
-          {message ? (
+          {message || restoredMessage ? (
             <Text className="rounded-xl bg-red-50 p-3 text-danger">
-              {message}
+              {message ?? restoredMessage}
             </Text>
           ) : null}
           {!session ? (

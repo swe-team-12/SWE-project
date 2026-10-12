@@ -105,6 +105,10 @@ const en = {
     promoOptional: "Promo code (optional)",
     inventoryReserved: "Inventory reserved",
     completeDemoPayment: "Complete the demonstration payment",
+    checkoutExpired:
+      "This reservation expired and the tickets were released. Start a new checkout.",
+    checkoutClosed:
+      "This reservation can no longer be paid. Check My tickets or start a new checkout.",
     demoPaymentNotice:
       "No card details are collected. This records a simulated KZT result only.",
     subtotal: "Subtotal",
@@ -439,6 +443,10 @@ const ru = {
     promoOptional: "Промокод (необязательно)",
     inventoryReserved: "Билеты зарезервированы",
     completeDemoPayment: "Завершите демонстрационный платёж",
+    checkoutExpired:
+      "Срок брони истёк, билеты освобождены. Начните оформление заново.",
+    checkoutClosed:
+      "Эту бронь уже нельзя оплатить. Проверьте «Мои билеты» или начните оформление заново.",
     demoPaymentNotice:
       "Данные карты не собираются. Записывается только симулированный результат в KZT.",
     subtotal: "Сумма",
@@ -773,6 +781,10 @@ const kk = {
     promoOptional: "Промокод (міндетті емес)",
     inventoryReserved: "Билет сақталды",
     completeDemoPayment: "Демонстрациялық төлемді аяқтаңыз",
+    checkoutExpired:
+      "Брондау мерзімі өтті, билеттер босатылды. Рәсімдеуді қайта бастаңыз.",
+    checkoutClosed:
+      "Бұл брондауды енді төлеу мүмкін емес. «Менің билеттерім» бөлімін тексеріңіз немесе рәсімдеуді қайта бастаңыз.",
     demoPaymentNotice:
       "Карта деректері жиналмайды. Тек KZT-дегі симуляция нәтижесі жазылады.",
     subtotal: "Аралық сома",
