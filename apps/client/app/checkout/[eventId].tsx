@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, router, useLocalSearchParams } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
@@ -14,6 +14,12 @@ import {
 } from "@/components/ui";
 import { apiFetch } from "@/lib/api";
 import { captureAnalytics } from "@/lib/analytics";
+import {
+  clearCheckoutDraft,
+  isRestorableSeat,
+  loadCheckoutDraft,
+  saveCheckoutDraft,
+} from "@/lib/checkoutDraft";
 import { useAuth } from "@/providers/AuthProvider";
 import type { EventItem, Seat } from "@/types";
 import { formatKzt, newIdempotencyKey } from "@/utils/format";
@@ -35,12 +41,15 @@ export default function CheckoutPage() {
   }>();
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [ticketTypeId, setTicketTypeId] = useState<string>();
-  const [seatId, setSeatId] = useState<string>();
+  const [draft] = useState(() =>
+    loadCheckoutDraft<CheckoutSession>(user?.id, eventId),
+  );
+  const [ticketTypeId, setTicketTypeId] = useState(draft.ticketTypeId);
+  const [chosenSeatId, setSeatId] = useState(draft.seatId);
   const [attendeeName, setAttendeeName] = useState(user?.display_name ?? "");
   const [attendeeEmail, setAttendeeEmail] = useState(user?.email ?? "");
   const [promo, setPromo] = useState(initialPromo ?? "");
-  const [session, setSession] = useState<CheckoutSession>();
+  const [session, setSession] = useState(draft.session);
   const [message, setMessage] = useState<string>();
   const eventQuery = useQuery({
     queryKey: ["event", eventId],
@@ -53,10 +62,23 @@ export default function CheckoutPage() {
     enabled: eventQuery.data?.seating_mode === "assigned",
   });
   const event = eventQuery.data;
+  // A remembered seat without an active hold is only kept while the API still
+  // reports it as available; a held seat is shown as the user's selection.
+  const seatId =
+    session ||
+    !seatsQuery.data ||
+    seatsQuery.isFetching ||
+    isRestorableSeat(chosenSeatId, seatsQuery.data)
+      ? chosenSeatId
+      : undefined;
   const selectedSeat = seatsQuery.data?.find((seat) => seat.id === seatId);
   const selectedType = event?.ticket_types.find(
     (item) => item.id === ticketTypeId,
   );
+
+  useEffect(() => {
+    saveCheckoutDraft(user?.id, eventId, { ticketTypeId, seatId, session });
+  }, [user?.id, eventId, ticketTypeId, seatId, session]);
 
   const reserve = useMutation({
     mutationFn: async () => {
@@ -111,6 +133,7 @@ export default function CheckoutPage() {
         source: promo.trim() ? "campaign" : "direct",
         route: "/checkout/[eventId]",
       });
+      clearCheckoutDraft(user?.id, eventId);
       await queryClient.invalidateQueries({ queryKey: ["tickets"] });
       router.replace("/tickets");
     },
