@@ -53,13 +53,84 @@ describe("payment notification translations", () => {
     expect(structured.body).toContain("BF-456");
     expect(structured.body).toContain("2");
     const other = {
-      type: "support_message",
-      title: "Staff replied",
+      type: "payout_status",
+      title: "Payout sent",
       body: "Open your case",
     };
     expect(notificationText(other, "kk")).toEqual({
       title: other.title,
       body: other.body,
     });
+  });
+});
+
+describe("event update and support notification translations", () => {
+  const oldEventUpdate = {
+    type: "event_updated",
+    title: "Almaty Tech Forum 2026 was updated",
+    body: "Review the latest event date, time, and venue details.",
+    data: { event_id: "event-id" },
+  };
+  const oldSupportMessage = {
+    type: "support_message",
+    title: "New message in SUP-DEMO-0001",
+    body: "Please check the venue entrance.",
+    data: { case_id: "case-id" },
+  };
+  const oldSupportStatus = {
+    type: "support_status",
+    title: "Support case SUP-DEMO-0001 updated",
+    body: "Status changed from open to in_progress.",
+    data: { case_id: "case-id" },
+  };
+
+  it.each(["kk", "ru"])(
+    "renders stored event and support notifications in %s",
+    (locale) => {
+      const event = notificationText(oldEventUpdate, locale);
+      expect(event.title).toContain("Almaty Tech Forum 2026");
+      expect(event.title).not.toBe(oldEventUpdate.title);
+      expect(event.body).not.toBe(oldEventUpdate.body);
+
+      const message = notificationText(oldSupportMessage, locale);
+      expect(message.title).toContain("SUP-DEMO-0001");
+      expect(message.title).not.toBe(oldSupportMessage.title);
+      expect(message.body).toBe(oldSupportMessage.body);
+
+      const status = notificationText(oldSupportStatus, locale);
+      const t = i18n.getFixedT(locale);
+      expect(status.title).toContain("SUP-DEMO-0001");
+      expect(status.title).not.toBe(oldSupportStatus.title);
+      expect(status.body).toContain(t("status.open"));
+      expect(status.body).toContain(t("status.in_progress"));
+      expect(status.body).not.toContain("in_progress");
+    },
+  );
+
+  it("prefers structured data for new notifications", () => {
+    const event = notificationText(
+      {
+        ...oldEventUpdate,
+        title: "irrelevant",
+        data: { event_title: "Spring Gala" },
+      },
+      "ru",
+    );
+    expect(event.title).toContain("Spring Gala");
+    const status = notificationText(
+      {
+        ...oldSupportStatus,
+        title: "irrelevant",
+        body: "irrelevant",
+        data: {
+          case_number: "SUP-2",
+          old_status: "in_progress",
+          new_status: "resolved",
+        },
+      },
+      "ru",
+    );
+    expect(status.title).toContain("SUP-2");
+    expect(status.body).toContain(i18n.getFixedT("ru")("status.resolved"));
   });
 });
