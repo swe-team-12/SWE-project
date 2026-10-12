@@ -351,6 +351,11 @@ const en = {
     technical: "Technical",
     activation: "Activation",
   },
+  places: {
+    almaty: "Almaty",
+    abayAvenue44Almaty: "Abay Avenue 44, Almaty",
+    asiaAlmaty: "Asia/Almaty",
+  },
 };
 
 const ru = {
@@ -702,6 +707,11 @@ const ru = {
     account: "Аккаунт",
     technical: "Техническая проблема",
     activation: "Активация",
+  },
+  places: {
+    almaty: "Алматы",
+    abayAvenue44Almaty: "проспект Абая, 44, Алматы",
+    asiaAlmaty: "Азия/Алматы",
   },
 };
 
@@ -1056,6 +1066,11 @@ const kk = {
     account: "Тіркелгі",
     technical: "Техникалық мәселе",
     activation: "Белсендіру",
+  },
+  places: {
+    almaty: "Алматы",
+    abayAvenue44Almaty: "Абай даңғылы, 44, Алматы",
+    asiaAlmaty: "Азия/Алматы",
   },
 };
 
