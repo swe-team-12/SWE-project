@@ -234,6 +234,39 @@ async def disable_campaign(campaign_id: uuid.UUID, user: CurrentUser, db: DbSess
     return {"is_enabled": False}
 
 
+async def _inventory_available(
+    db: DbSession,
+    ticket_type: TicketType,
+    count: int,
+    now: datetime,
+    exclude_session_id: uuid.UUID | None = None,
+) -> bool:
+    """Whether `count` more tickets fit; callers must hold the event/ticket-type locks."""
+    sold = await db.scalar(
+        select(func.count())
+        .select_from(OrderItem)
+        .join(Order)
+        .where(
+            OrderItem.ticket_type_id == ticket_type.id,
+            Order.status.in_([OrderStatus.PAID, OrderStatus.FREE]),
+        )
+    )
+    reserved_query = (
+        select(func.coalesce(func.sum(CheckoutLine.quantity), 0))
+        .select_from(CheckoutLine)
+        .join(CheckoutSession)
+        .where(
+            CheckoutLine.ticket_type_id == ticket_type.id,
+            CheckoutSession.status == CheckoutStatus.OPEN,
+            CheckoutSession.expires_at > now,
+        )
+    )
+    if exclude_session_id is not None:
+        reserved_query = reserved_query.where(CheckoutSession.id != exclude_session_id)
+    reserved = await db.scalar(reserved_query)
+    return (sold or 0) + (reserved or 0) + count <= ticket_type.quantity
+
+
 @router.post("/checkout/sessions", response_model=CheckoutOut, status_code=201)
 async def create_checkout(
     payload: CheckoutCreate, user: CurrentUser, db: DbSession
@@ -333,26 +366,7 @@ async def create_checkout(
                 "Paid sales unavailable",
                 "The organizer must activate paid sales.",
             )
-        sold = await db.scalar(
-            select(func.count())
-            .select_from(OrderItem)
-            .join(Order)
-            .where(
-                OrderItem.ticket_type_id == ticket_type.id,
-                Order.status.in_([OrderStatus.PAID, OrderStatus.FREE]),
-            )
-        )
-        reserved = await db.scalar(
-            select(func.coalesce(func.sum(CheckoutLine.quantity), 0))
-            .select_from(CheckoutLine)
-            .join(CheckoutSession)
-            .where(
-                CheckoutLine.ticket_type_id == ticket_type.id,
-                CheckoutSession.status == CheckoutStatus.OPEN,
-                CheckoutSession.expires_at > now,
-            )
-        )
-        if (sold or 0) + (reserved or 0) + count > ticket_type.quantity:
+        if not await _inventory_available(db, ticket_type, count, now):
             raise AppError(409, "inventory_exhausted", "Sold out", "Not enough tickets remain.")
 
     for requested in payload.lines:
@@ -460,6 +474,17 @@ async def get_checkout(session_id: uuid.UUID, user: CurrentUser, db: DbSession) 
 async def confirm_checkout(
     session_id: uuid.UUID, payload: CheckoutConfirm, user: CurrentUser, db: DbSession
 ) -> dict:
+    session_event_id = await db.scalar(
+        select(CheckoutSession.event_id).where(
+            CheckoutSession.id == session_id, CheckoutSession.user_id == user.id
+        )
+    )
+    if session_event_id is None:
+        raise AppError(404, "checkout_not_found", "Checkout not found", "Start checkout again.")
+    # Lock the event before the session (same order as create_checkout) so concurrent
+    # reservations and confirmations for one event serialize instead of deadlocking.
+    event = await db.scalar(select(Event).where(Event.id == session_event_id).with_for_update())
+    assert event is not None
     session = await db.scalar(
         select(CheckoutSession)
         .options(selectinload(CheckoutSession.lines))
@@ -515,8 +540,6 @@ async def confirm_checkout(
         await expire_checkout_sessions(db, session.event_id)
         await db.commit()
         raise AppError(409, "checkout_expired", "Checkout expired", "Start checkout again.")
-    event = await db.scalar(select(Event).where(Event.id == session.event_id).with_for_update())
-    assert event is not None
     if event.status != EventStatus.PUBLISHED or event.paid_sales_suspended:
         raise AppError(
             409, "sales_unavailable", "Sales unavailable", "The event cannot accept orders."
@@ -551,6 +574,23 @@ async def confirm_checkout(
             "No ticket was issued. Start a new checkout when you are ready to try again.",
         )
         raise AppError(402, "demo_payment_failed", "Payment failed", "No ticket was issued.")
+
+    # Revalidate the held inventory under lock: never issue more tickets than remain,
+    # even if the hold was outcounted (e.g. capacity reduced) since checkout started.
+    quantity_by_type: dict[uuid.UUID, int] = defaultdict(int)
+    for line in session.lines:
+        quantity_by_type[line.ticket_type_id] += line.quantity
+    for ticket_type_id, count in quantity_by_type.items():
+        ticket_type = await db.scalar(
+            select(TicketType).where(TicketType.id == ticket_type_id).with_for_update()
+        )
+        if ticket_type is None or not await _inventory_available(
+            db, ticket_type, count, now, exclude_session_id=session.id
+        ):
+            session.status = CheckoutStatus.FAILED
+            await db.execute(delete(SeatHold).where(SeatHold.session_id == session.id))
+            await db.commit()
+            raise AppError(409, "inventory_exhausted", "Sold out", "Not enough tickets remain.")
 
     order = Order(
         order_number=order_number(),

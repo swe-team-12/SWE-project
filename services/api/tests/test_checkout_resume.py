@@ -64,3 +64,47 @@ async def test_reloading_another_users_checkout_is_not_found() -> None:
     with pytest.raises(AppError) as error:
         await commerce.get_checkout(uuid.uuid4(), User(id=uuid.uuid4()), FakeDb(None))  # type: ignore[arg-type]
     assert error.value.status == 404
+
+
+class SequenceDb:
+    def __init__(self, *results: Any) -> None:
+        self.results = list(results)
+        self.commits = 0
+
+    async def scalar(self, statement: Any) -> Any:
+        return self.results.pop(0)
+
+    async def execute(self, statement: Any) -> None:
+        return None
+
+    async def commit(self) -> None:
+        self.commits += 1
+
+
+async def test_confirm_rejects_hold_when_inventory_no_longer_available(monkeypatch) -> None:
+    from app.enums import EventStatus
+    from app.models import CheckoutLine, Event, TicketType
+    from app.schemas import CheckoutConfirm
+
+    session = checkout(timedelta(minutes=5))
+    ticket_type = TicketType(id=uuid.uuid4(), quantity=5)
+    session.lines = [CheckoutLine(ticket_type_id=ticket_type.id, quantity=3)]
+    event = Event(id=session.event_id, status=EventStatus.PUBLISHED, paid_sales_suspended=False)
+    db = SequenceDb(session.event_id, event, session, None, None, ticket_type)
+    checked: list[tuple[int, uuid.UUID | None]] = []
+
+    async def sold_out(_db: Any, _tt: Any, count: int, _now: Any, exclude_session_id=None) -> bool:
+        checked.append((count, exclude_session_id))
+        return False
+
+    monkeypatch.setattr(commerce, "_inventory_available", sold_out)
+    payload = CheckoutConfirm(outcome="success", idempotency_key="confirm-key-123456")
+
+    with pytest.raises(AppError) as error:
+        await commerce.confirm_checkout(session.id, payload, User(id=uuid.uuid4()), db)  # type: ignore[arg-type]
+
+    assert error.value.status == 409
+    assert error.value.code == "inventory_exhausted"
+    assert checked == [(3, session.id)]
+    assert session.status == CheckoutStatus.FAILED
+    assert db.commits == 1

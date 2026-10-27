@@ -6,18 +6,32 @@ import { useTranslation } from "react-i18next";
 
 import { Button, Field, Surface } from "@/components/ui";
 import { apiFetch } from "@/lib/api";
+import { isValidEmail, normalizeEmail } from "@/lib/email";
 
 export default function ForgotPasswordPage() {
   const { t } = useTranslation();
   const [email, setEmail] = useState("");
+  const [showValidation, setShowValidation] = useState(false);
+  const trimmedEmail = normalizeEmail(email);
+  const emailValid = isValidEmail(trimmedEmail);
+  const emailError =
+    showValidation && trimmedEmail && !emailValid
+      ? t("ui.invalidEmail")
+      : undefined;
   const request = useMutation({
-    mutationFn: () =>
+    mutationFn: (value: string) =>
       apiFetch<{ message: string }>("/auth/password-reset/request", {
         method: "POST",
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email: value }),
         skipRefresh: true,
       }),
   });
+  const submit = () => {
+    setShowValidation(true);
+    if (!emailValid) return;
+    setEmail(trimmedEmail);
+    request.mutate(trimmedEmail);
+  };
   return (
     <Surface className="mx-auto mt-8 w-full max-w-lg gap-5 p-7">
       <View>
@@ -30,14 +44,17 @@ export default function ForgotPasswordPage() {
         label={t("common.email")}
         value={email}
         onChangeText={setEmail}
+        onBlur={() => setShowValidation(true)}
+        error={emailError}
         autoCapitalize="none"
         keyboardType="email-address"
+        autoComplete="email"
       />
       <Button
         label={t("ui.sendReset")}
-        onPress={() => request.mutate()}
+        onPress={submit}
         loading={request.isPending}
-        disabled={!email.includes("@")}
+        disabled={!trimmedEmail}
       />
       {request.data ? (
         <Text className="rounded-xl bg-emerald-50 p-3 font-bold text-success">
