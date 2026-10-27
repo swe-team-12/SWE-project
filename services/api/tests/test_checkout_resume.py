@@ -4,10 +4,11 @@ from typing import Any
 
 import pytest
 
-from app.enums import CheckoutStatus
+from app.enums import CheckoutStatus, EventStatus, EventVisibility
 from app.errors import AppError
-from app.models import CheckoutSession, User
+from app.models import CheckoutSession, Event, TicketType, User
 from app.routers import commerce
+from app.schemas import CheckoutCreate
 
 
 class FakeDb:
@@ -74,6 +75,12 @@ class SequenceDb:
     async def scalar(self, statement: Any) -> Any:
         return self.results.pop(0)
 
+    def add(self, instance: Any) -> None:
+        pass
+
+    async def flush(self) -> None:
+        pass
+
     async def execute(self, statement: Any) -> None:
         return None
 
@@ -108,3 +115,24 @@ async def test_confirm_rejects_hold_when_inventory_no_longer_available(monkeypat
     assert checked == [(3, session.id)]
     assert session.status == CheckoutStatus.FAILED
     assert db.commits == 1
+
+
+async def test_checkout_rejects_quantity_above_per_order_limit_across_lines(monkeypatch) -> None:
+    async def fake_expire(_db: Any, event_id: uuid.UUID | None = None) -> int:
+        return 0
+
+    monkeypatch.setattr(commerce, "expire_checkout_sessions", fake_expire)
+    event = Event(id=uuid.uuid4(), status=EventStatus.PUBLISHED, visibility=EventVisibility.PUBLIC)
+    ticket_type = TicketType(id=uuid.uuid4(), event_id=event.id, max_per_order=4, is_hidden=False)
+    line = {"ticket_type_id": ticket_type.id, "attendee_name": "Aru", "attendee_email": "a@x.kz"}
+    payload = CheckoutCreate(
+        event_id=event.id,
+        idempotency_key="checkout-limit",
+        lines=[{**line, "quantity": 3}, {**line, "quantity": 2}],
+    )
+    db = SequenceDb(None, event, ticket_type)
+
+    with pytest.raises(AppError) as error:
+        await commerce.create_checkout(payload, User(id=uuid.uuid4(), is_email_verified=True), db)  # type: ignore[arg-type]
+    assert error.value.status == 422
+    assert error.value.code == "order_limit_exceeded"
