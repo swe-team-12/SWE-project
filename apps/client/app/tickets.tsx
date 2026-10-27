@@ -1,15 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { File, Paths } from "expo-file-system";
 import { Link } from "expo-router";
-import * as Sharing from "expo-sharing";
-import {
-  Image,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-} from "react-native";
+import { Image, Pressable, ScrollView, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -19,27 +10,19 @@ import {
   StatusBadge,
   Surface,
 } from "@/components/ui";
+import i18n from "@/i18n";
 import { API_URL, apiFetch, currentAccessToken } from "@/lib/api";
-import { saveBlobOnWeb } from "@/lib/files";
+import { downloadAuthenticatedFile } from "@/lib/files";
 import { useAuth } from "@/providers/AuthProvider";
 import type { Ticket } from "@/types";
 
-async function downloadPdf(ticket: Ticket) {
-  const response = await fetch(`${API_URL}/tickets/${ticket.id}/pdf`, {
-    headers: { Authorization: `Bearer ${currentAccessToken()}` },
-  });
-  if (!response.ok) throw new Error("Could not generate the ticket PDF.");
-  const blob = await response.blob();
-  if (Platform.OS === "web") {
-    saveBlobOnWeb(blob, `${ticket.ticket_code}.pdf`);
-    return;
-  }
-  const file = new File(Paths.cache, `${ticket.ticket_code}.pdf`);
-  file.write(new Uint8Array(await blob.arrayBuffer()));
-  await Sharing.shareAsync(file.uri, {
-    mimeType: "application/pdf",
-    dialogTitle: "Open or print ticket",
-  });
+function downloadPdf(ticket: Ticket) {
+  return downloadAuthenticatedFile(
+    `/tickets/${ticket.id}/pdf`,
+    `${ticket.ticket_code}.pdf`,
+    "application/pdf",
+    i18n.t("ui.openOrPrintTicket"),
+  );
 }
 
 export default function TicketsPage() {
@@ -122,7 +105,9 @@ export default function TicketsPage() {
               label={t("ui.downloadPrint")}
               variant="secondary"
               onPress={() => download.mutate(ticket)}
-              loading={download.isPending && download.variables?.id === ticket.id}
+              loading={
+                download.isPending && download.variables?.id === ticket.id
+              }
             />
           </Surface>
         ))}
