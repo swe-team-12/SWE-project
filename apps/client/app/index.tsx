@@ -11,12 +11,21 @@ import type { EventItem } from "@/types";
 export default function DiscoverPage() {
   const { t } = useTranslation();
   const [search, setSearch] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const from = isIsoDate(dateFrom) ? dateFrom : "";
+  const to = isIsoDate(dateTo) ? dateTo : "";
   const query = useQuery({
-    queryKey: ["events", search],
-    queryFn: () =>
-      apiFetch<EventItem[]>(
-        `/events${search ? `?q=${encodeURIComponent(search)}` : ""}`,
-      ),
+    queryKey: ["events", search, from, to],
+    queryFn: () => {
+      const params = new URLSearchParams();
+      if (search) params.set("q", search);
+      if (from) params.set("date_from", from);
+      if (to) params.set("date_to", to);
+      if (from || to) params.set("tz", deviceTimeZone());
+      const qs = params.toString();
+      return apiFetch<EventItem[]>(`/events${qs ? `?${qs}` : ""}`);
+    },
   });
   return (
     <ScrollView
@@ -46,6 +55,26 @@ export default function DiscoverPage() {
               onChangeText={setSearch}
               placeholder={t("ui.searchPlaceholder")}
             />
+          </View>
+          <View className="max-w-xl flex-row gap-3">
+            <View className="flex-1">
+              <Field
+                label={t("ui.dateFrom")}
+                value={dateFrom}
+                onChangeText={setDateFrom}
+                placeholder={t("ui.datePlaceholder")}
+                error={dateFrom && !from ? t("ui.invalidDate") : undefined}
+              />
+            </View>
+            <View className="flex-1">
+              <Field
+                label={t("ui.dateTo")}
+                value={dateTo}
+                onChangeText={setDateTo}
+                placeholder={t("ui.datePlaceholder")}
+                error={dateTo && !to ? t("ui.invalidDate") : undefined}
+              />
+            </View>
           </View>
         </View>
       </View>
@@ -83,4 +112,21 @@ export default function DiscoverPage() {
       </View>
     </ScrollView>
   );
+}
+
+function isIsoDate(value: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const parsed = new Date(`${value}T00:00:00Z`);
+  return (
+    !Number.isNaN(parsed.getTime()) &&
+    parsed.toISOString().slice(0, 10) === value
+  );
+}
+
+function deviceTimeZone() {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Almaty";
+  } catch {
+    return "Asia/Almaty";
+  }
 }
