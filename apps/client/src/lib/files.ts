@@ -3,7 +3,9 @@ import { File, Paths } from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import { Platform } from "react-native";
 
-import { API_URL, currentAccessToken } from "./api";
+import i18n from "@/i18n";
+
+import { ApiError, apiFetchBlob } from "./api";
 
 export async function fileForm(asset: DocumentPickerAsset): Promise<FormData> {
   const form = new FormData();
@@ -36,24 +38,37 @@ export function saveBlobOnWeb(blob: Blob, filename: string): void {
   setTimeout(() => URL.revokeObjectURL(url), OBJECT_URL_RELEASE_DELAY_MS);
 }
 
+/**
+ * Maps a failed download to a user-facing message: an expired session that
+ * could not be refreshed asks the user to sign in again, a server problem
+ * keeps its detail, and anything else gets a translated generic message.
+ */
+export function downloadErrorMessage(error: unknown): string {
+  if (error instanceof ApiError) {
+    if (error.problem.status === 401) return i18n.t("ui.sessionExpired");
+    if (error.problem.code !== "network_error" && error.problem.detail)
+      return error.problem.detail;
+  }
+  return i18n.t("ui.downloadFailed");
+}
+
 export async function downloadAuthenticatedFile(
   path: string,
   filename: string,
   mimeType: string,
+  dialogTitle: string = filename,
 ): Promise<void> {
-  const token = currentAccessToken();
-  const response = await fetch(`${API_URL}${path}`, {
-    credentials: "include",
-    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-  });
-  if (!response.ok)
-    throw new Error(`Download failed with status ${response.status}.`);
-  const blob = await response.blob();
+  let blob: Blob;
+  try {
+    blob = await apiFetchBlob(path);
+  } catch (error) {
+    throw new Error(downloadErrorMessage(error), { cause: error });
+  }
   if (Platform.OS === "web") {
     saveBlobOnWeb(blob, filename);
     return;
   }
   const file = new File(Paths.cache, filename);
   file.write(new Uint8Array(await blob.arrayBuffer()));
-  await Sharing.shareAsync(file.uri, { mimeType, dialogTitle: filename });
+  await Sharing.shareAsync(file.uri, { mimeType, dialogTitle });
 }
