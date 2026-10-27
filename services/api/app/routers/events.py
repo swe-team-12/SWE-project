@@ -1,7 +1,8 @@
 import re
 import secrets
 import uuid
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, time, timedelta
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from fastapi import APIRouter, File, Query, UploadFile
 from sqlalchemy import case, func, or_, select
@@ -146,8 +147,24 @@ async def list_public_events(
     city: str | None = None,
     category: str | None = None,
     starts_after: datetime | None = None,
+    date_from: date | None = None,
+    date_to: date | None = None,
+    tz: str = "Asia/Almaty",
     limit: int = Query(default=30, ge=1, le=100),
 ) -> list[EventOut]:
+    try:
+        zone = ZoneInfo(tz)
+    except (ZoneInfoNotFoundError, ValueError) as exc:
+        raise AppError(
+            422, "invalid_timezone", "Invalid timezone", "Use a valid IANA timezone."
+        ) from exc
+    if date_from and date_to and date_from > date_to:
+        raise AppError(
+            422,
+            "invalid_date_range",
+            "Invalid date range",
+            "Start date must not be after end date.",
+        )
     statement = (
         select(Event)
         .options(selectinload(Event.ticket_types))
@@ -182,6 +199,14 @@ async def list_public_events(
         statement = statement.where(Event.category == category)
     if starts_after:
         statement = statement.where(Event.starts_at > starts_after)
+    # Calendar dates are inclusive and resolved in the caller's timezone (default Asia/Almaty).
+    if date_from:
+        statement = statement.where(
+            Event.starts_at >= datetime.combine(date_from, time.min, zone).astimezone(UTC)
+        )
+    if date_to:
+        day_after = datetime.combine(date_to + timedelta(days=1), time.min, zone)
+        statement = statement.where(Event.starts_at < day_after.astimezone(UTC))
     statement = statement.order_by(Event.starts_at, Event.id)
     events = (await db.scalars(statement)).unique().all()
     return [serialize_event(event) for event in events]

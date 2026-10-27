@@ -1,6 +1,7 @@
 import uuid
 from collections.abc import AsyncIterator
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
+from zoneinfo import ZoneInfo
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -67,3 +68,26 @@ async def test_search_treats_like_wildcards_literally(db: AsyncSession) -> None:
     results = await list_public_events(db, q="100%", limit=30)
 
     assert [event.title for event in results] == ["100% Jazz"]
+
+
+async def test_date_range_is_inclusive_in_almaty_time(db: AsyncSession) -> None:
+    almaty = ZoneInfo("Asia/Almaty")
+    starts = {
+        "Before": datetime(2030, 11, 9, 23, 30, tzinfo=almaty),
+        "First day": datetime(2030, 11, 10, 0, 0, tzinfo=almaty),
+        "Middle": datetime(2030, 11, 12, 19, 0, tzinfo=almaty),
+        "Last day late": datetime(2030, 11, 15, 23, 30, tzinfo=almaty),
+        "After": datetime(2030, 11, 16, 0, 0, tzinfo=almaty),
+    }
+    for title, starts_at in starts.items():
+        event = make_event(title, "Almaty Hall", 1)
+        event.starts_at = starts_at.astimezone(UTC)
+        event.ends_at = event.starts_at + timedelta(hours=3)
+        db.add(event)
+    await db.commit()
+
+    results = await list_public_events(
+        db, date_from=date(2030, 11, 10), date_to=date(2030, 11, 15), limit=30
+    )
+
+    assert [event.title for event in results] == ["First day", "Middle", "Last day late"]
