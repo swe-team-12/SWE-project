@@ -1,4 +1,5 @@
 import type { AuthTokens, Problem } from "@/types";
+import { apiErrorText } from "./apiErrorText";
 import { getRefreshToken, setRefreshToken } from "./session-storage";
 
 export const API_URL =
@@ -12,6 +13,13 @@ let refreshInFlight: Promise<boolean> | null = null;
 export class ApiError extends Error {
   constructor(public problem: Problem) {
     super(problem.detail);
+    // Resolve the message on read so known problem codes follow the active
+    // UI language; unknown codes keep the server-provided detail.
+    Object.defineProperty(this, "message", {
+      configurable: true,
+      enumerable: false,
+      get: () => apiErrorText(problem),
+    });
   }
 }
 
