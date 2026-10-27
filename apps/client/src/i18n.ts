@@ -79,6 +79,7 @@ const en = {
     resetTitle: "Reset your password",
     resetHelp: "We will send a one-use link if the account exists.",
     sendReset: "Send reset link",
+    invalidEmail: "Enter a valid email address.",
     choosePassword: "Choose a new password",
     newPassword: "New password",
     updatePassword: "Update password",
@@ -86,6 +87,8 @@ const en = {
     verifyHelp: "Confirm the address linked to this one-use BiletFlow link.",
     verifyAccount: "Verify account",
     verified: "Email verified. You can now check out.",
+    verifying: "Verifying your email…",
+    verifyMissingToken: "This verification link is missing its token.",
     signInAgain: "Sign in",
     applyingCampaign: "Applying campaign…",
     privateInvitation: "Private event invitation",
@@ -359,6 +362,15 @@ const en = {
     abayAvenue44Almaty: "Abay Avenue 44, Almaty",
     asiaAlmaty: "Asia/Almaty",
   },
+  apiErrors: {
+    promo_invalid: "This code is not valid.",
+    promo_disabled: "This promotion is disabled.",
+    promo_not_started: "This promotion has not started.",
+    promo_expired: "This promotion has expired.",
+    promo_exhausted: "No redemptions remain.",
+    promo_code_exists: "Choose another promo code.",
+    inventory_exhausted: "Not enough tickets remain.",
+  },
 };
 
 const ru = {
@@ -439,6 +451,7 @@ const ru = {
     resetTitle: "Сброс пароля",
     resetHelp: "Если аккаунт существует, мы отправим одноразовую ссылку.",
     sendReset: "Отправить ссылку",
+    invalidEmail: "Введите корректный адрес электронной почты.",
     choosePassword: "Выберите новый пароль",
     newPassword: "Новый пароль",
     updatePassword: "Обновить пароль",
@@ -446,6 +459,8 @@ const ru = {
     verifyHelp: "Подтвердите адрес из одноразовой ссылки BiletFlow.",
     verifyAccount: "Подтвердить аккаунт",
     verified: "Почта подтверждена. Теперь можно оформлять билеты.",
+    verifying: "Подтверждаем почту…",
+    verifyMissingToken: "В ссылке подтверждения отсутствует токен.",
     signInAgain: "Войти",
     applyingCampaign: "Применяем кампанию…",
     privateInvitation: "Приглашение на закрытое событие",
@@ -719,6 +734,15 @@ const ru = {
     abayAvenue44Almaty: "проспект Абая, 44, Алматы",
     asiaAlmaty: "Азия/Алматы",
   },
+  apiErrors: {
+    promo_invalid: "Этот промокод недействителен.",
+    promo_disabled: "Эта акция отключена.",
+    promo_not_started: "Эта акция ещё не началась.",
+    promo_expired: "Срок действия акции истёк.",
+    promo_exhausted: "Лимит использований промокода исчерпан.",
+    promo_code_exists: "Такой промокод уже существует. Выберите другой.",
+    inventory_exhausted: "Недостаточно оставшихся билетов.",
+  },
 };
 
 const kk = {
@@ -799,6 +823,7 @@ const kk = {
     resetTitle: "Құпиясөзді қалпына келтіру",
     resetHelp: "Тіркелгі бар болса, бір реттік сілтеме жібереміз.",
     sendReset: "Қалпына келтіру сілтемесін жіберу",
+    invalidEmail: "Жарамды электрондық пошта мекенжайын енгізіңіз.",
     choosePassword: "Жаңа құпиясөз таңдаңыз",
     newPassword: "Жаңа құпиясөз",
     updatePassword: "Құпиясөзді жаңарту",
@@ -807,6 +832,8 @@ const kk = {
       "BiletFlow бір реттік сілтемесіне байланыстырылған мекенжайды растаңыз.",
     verifyAccount: "Тіркелгіні растау",
     verified: "Эл. пошта расталды. Енді билет рәсімдеуге болады.",
+    verifying: "Эл. пошта расталуда…",
+    verifyMissingToken: "Растау сілтемесінде токен жоқ.",
     signInAgain: "Кіру",
     applyingCampaign: "Кампания қолданылуда…",
     privateInvitation: "Жабық іс-шараға шақыру",
@@ -1080,6 +1107,15 @@ const kk = {
     almaty: "Алматы",
     abayAvenue44Almaty: "Абай даңғылы, 44, Алматы",
     asiaAlmaty: "Азия/Алматы",
+  },
+  apiErrors: {
+    promo_invalid: "Бұл промокод жарамсыз.",
+    promo_disabled: "Бұл акция өшірілген.",
+    promo_not_started: "Бұл акция әлі басталған жоқ.",
+    promo_expired: "Бұл акцияның мерзімі өтіп кетті.",
+    promo_exhausted: "Промокодты пайдалану лимиті таусылды.",
+    promo_code_exists: "Мұндай промокод бар. Басқасын таңдаңыз.",
+    inventory_exhausted: "Билеттер жеткіліксіз.",
   },
 };
 
