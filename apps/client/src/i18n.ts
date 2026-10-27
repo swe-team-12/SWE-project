@@ -356,6 +356,15 @@ const en = {
     abayAvenue44Almaty: "Abay Avenue 44, Almaty",
     asiaAlmaty: "Asia/Almaty",
   },
+  apiErrors: {
+    promo_invalid: "This code is not valid.",
+    promo_disabled: "This promotion is disabled.",
+    promo_not_started: "This promotion has not started.",
+    promo_expired: "This promotion has expired.",
+    promo_exhausted: "No redemptions remain.",
+    promo_code_exists: "Choose another promo code.",
+    inventory_exhausted: "Not enough tickets remain.",
+  },
 };
 
 const ru = {
@@ -712,6 +721,15 @@ const ru = {
     almaty: "Алматы",
     abayAvenue44Almaty: "проспект Абая, 44, Алматы",
     asiaAlmaty: "Азия/Алматы",
+  },
+  apiErrors: {
+    promo_invalid: "Этот промокод недействителен.",
+    promo_disabled: "Эта акция отключена.",
+    promo_not_started: "Эта акция ещё не началась.",
+    promo_expired: "Срок действия акции истёк.",
+    promo_exhausted: "Лимит использований промокода исчерпан.",
+    promo_code_exists: "Такой промокод уже существует. Выберите другой.",
+    inventory_exhausted: "Недостаточно оставшихся билетов.",
   },
 };
 
@@ -1071,6 +1089,15 @@ const kk = {
     almaty: "Алматы",
     abayAvenue44Almaty: "Абай даңғылы, 44, Алматы",
     asiaAlmaty: "Азия/Алматы",
+  },
+  apiErrors: {
+    promo_invalid: "Бұл промокод жарамсыз.",
+    promo_disabled: "Бұл акция өшірілген.",
+    promo_not_started: "Бұл акция әлі басталған жоқ.",
+    promo_expired: "Бұл акцияның мерзімі өтіп кетті.",
+    promo_exhausted: "Промокодты пайдалану лимиті таусылды.",
+    promo_code_exists: "Мұндай промокод бар. Басқасын таңдаңыз.",
+    inventory_exhausted: "Билеттер жеткіліксіз.",
   },
 };
 

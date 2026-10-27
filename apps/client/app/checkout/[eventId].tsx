@@ -36,7 +36,7 @@ interface CheckoutSession {
 }
 
 // Keep client-generated notices as translation keys so they re-render in the
-// active language; server-provided problem details are shown as received.
+// active language; API errors arrive already localized by ApiError.
 type CheckoutNotice = { key: string } | { text: string };
 
 class CheckoutValidationError extends Error {
