@@ -9,6 +9,11 @@ import Svg, {
 } from "react-native-svg";
 
 const WIDTH = 560;
+// The SVG viewBox is scaled down to fit narrow dashboard cards (~300px wide),
+// so chart text needs a larger base size to stay legible after scaling.
+const INK = "#102A43";
+const LABEL_SIZE = 17;
+const VALUE_SIZE = 16;
 
 export function BarChart({
   rows,
@@ -16,7 +21,7 @@ export function BarChart({
   rows: { label: string; value: number; formatted?: string }[];
 }) {
   const max = Math.max(1, ...rows.map((row) => row.value));
-  const height = Math.max(72, rows.length * 46 + 12);
+  const height = Math.max(72, rows.length * 48 + 12);
   const summary = rows
     .map((row) => `${row.label}: ${row.formatted ?? row.value}`)
     .join("; ");
@@ -33,40 +38,40 @@ export function BarChart({
         accessible={false}
       >
         {rows.map((row, index) => {
-          const y = index * 46 + 8;
-          const barWidth = Math.max(4, (row.value / max) * 310);
+          const y = index * 48 + 8;
+          const barWidth = Math.max(4, (row.value / max) * 220);
           return (
             <G key={row.label}>
               <SvgText
                 x={0}
-                y={y + 15}
-                fill="#102A43"
-                fontSize={13}
+                y={y + 17}
+                fill={INK}
+                fontSize={LABEL_SIZE}
                 fontWeight="700"
               >
-                {row.label.slice(0, 25)}
+                {row.label.slice(0, 18)}
               </SvgText>
               <Rect
-                x={190}
+                x={170}
                 y={y}
-                width={310}
-                height={20}
-                rx={10}
+                width={220}
+                height={22}
+                rx={11}
                 fill="#E6EFF5"
               />
               <Rect
-                x={190}
+                x={170}
                 y={y}
                 width={barWidth}
-                height={20}
-                rx={10}
+                height={22}
+                rx={11}
                 fill="#00A7A5"
               />
               <SvgText
-                x={510}
-                y={y + 15}
-                fill="#102A43"
-                fontSize={12}
+                x={400}
+                y={y + 17}
+                fill={INK}
+                fontSize={VALUE_SIZE}
                 fontWeight="700"
               >
                 {row.formatted ?? row.value}
@@ -85,7 +90,7 @@ export function LineChart({
 }: {
   points: { label: string; value: number; formatted?: string }[];
 }) {
-  const height = 220;
+  const height = 226;
   const chartLeft = 32;
   const chartRight = WIDTH - 24;
   const chartTop = 20;
@@ -152,10 +157,11 @@ export function LineChart({
             />
             <SvgText
               x={point.x}
-              y={198}
+              y={202}
               textAnchor="middle"
-              fill="#486581"
-              fontSize={11}
+              fill={INK}
+              fontSize={LABEL_SIZE}
+              fontWeight="600"
             >
               {point.label.slice(5)}
             </SvgText>
@@ -164,7 +170,7 @@ export function LineChart({
       </Svg>
       <View className="flex-row flex-wrap gap-x-4 gap-y-1">
         {points.map((point) => (
-          <Text key={point.label} className="text-xs text-muted">
+          <Text key={point.label} className="text-sm font-semibold text-ink">
             {point.label}: {point.formatted ?? point.value}
           </Text>
         ))}
@@ -206,15 +212,15 @@ export function Funnel({
                 width={width}
                 height={40}
                 rx={12}
-                fill="#102A43"
-                opacity={1 - index * 0.14}
+                fill={INK}
+                opacity={1 - index * 0.08}
               />
               <SvgText
                 x={WIDTH / 2}
                 y={y + 25}
                 textAnchor="middle"
                 fill="#FFFFFF"
-                fontSize={13}
+                fontSize={LABEL_SIZE}
                 fontWeight="700"
               >
                 {item.label}: {item.value}
