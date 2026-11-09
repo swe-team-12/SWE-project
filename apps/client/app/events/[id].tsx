@@ -24,6 +24,7 @@ import { eventContentText } from "@/lib/eventContentText";
 import { downloadAuthenticatedFile } from "@/lib/files";
 import { placeText } from "@/lib/placeText";
 import type { EventItem } from "@/types";
+import { formatDateTime } from "@/utils/date";
 import { formatKzt } from "@/utils/format";
 
 export default function EventPage() {
@@ -118,10 +119,7 @@ export default function EventPage() {
             {t("common.date")}
           </Text>
           <Text className="text-xl font-bold text-ink">
-            {new Intl.DateTimeFormat(i18n.language, {
-              dateStyle: "full",
-              timeStyle: "short",
-            }).format(new Date(event.starts_at))}
+            {formatDateTime(event.starts_at, i18n.language, "full")}
           </Text>
           <Text className="text-muted">
             {placeText(event.timezone, i18n.language)}

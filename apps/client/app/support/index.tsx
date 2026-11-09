@@ -15,6 +15,7 @@ import {
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/providers/AuthProvider";
 import type { EventItem } from "@/types";
+import { formatDateTime } from "@/utils/date";
 
 interface SupportCase {
   id: string;
@@ -216,7 +217,7 @@ export default function SupportPage() {
                   {t(`status.${item.category}`, {
                     defaultValue: item.category.replaceAll("_", " "),
                   })}{" "}
-                  · {new Date(item.updated_at).toLocaleString(i18n.language)}
+                  · {formatDateTime(item.updated_at, i18n.language)}
                 </Text>
               </Pressable>
             </Link>

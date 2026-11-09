@@ -240,6 +240,8 @@ const en = {
     downloadBundle: "Download encrypted event bundle",
     syncQueued: "Sync queued scans ({{count}})",
     bundleSaved: "Bundle saved securely on this device.",
+    offlineUnavailable:
+      "Offline scanning is unavailable in this browser mode (for example, private browsing). Scanning still works while you are online.",
     helpCenter: "Help center",
     supportConversations: "Support conversations",
     supportHelp:
@@ -618,6 +620,8 @@ const ru = {
     downloadBundle: "Скачать зашифрованный список",
     syncQueued: "Синхронизировать очередь ({{count}})",
     bundleSaved: "Список безопасно сохранён на устройстве.",
+    offlineUnavailable:
+      "Офлайн-сканирование недоступно в этом режиме браузера (например, в приватном окне). Сканирование работает, пока есть подключение к сети.",
     helpCenter: "Центр помощи",
     supportConversations: "Обращения в поддержку",
     supportHelp:
@@ -997,6 +1001,8 @@ const kk = {
     downloadBundle: "Шифрланған іс-шара тізімін жүктеу",
     syncQueued: "Кезекті синхрондау ({{count}})",
     bundleSaved: "Тізім құрылғыда қауіпсіз сақталды.",
+    offlineUnavailable:
+      "Бұл браузер режимінде (мысалы, жеке терезеде) офлайн сканерлеу қолжетімсіз. Желіге қосылып тұрғанда сканерлеу жұмыс істейді.",
     helpCenter: "Көмек орталығы",
     supportConversations: "Қолдау өтініштері",
     supportHelp:
