@@ -37,6 +37,10 @@ export default function SupportPage() {
   const [category, setCategory] = useState("technical");
   const [eventId, setEventId] = useState<string>();
   const [organizerCase, setOrganizerCase] = useState(false);
+  const trimmedSubject = subject.trim();
+  const trimmedMessage = message.trim();
+  const textValid = trimmedSubject.length >= 3 && trimmedMessage.length > 0;
+  const showTextHint = (subject.length > 0 || message.length > 0) && !textValid;
   const cases = useQuery({
     queryKey: ["support-cases"],
     queryFn: () => apiFetch<SupportCase[]>("/support/cases"),
@@ -57,8 +61,8 @@ export default function SupportPage() {
             ? "organizer_to_platform"
             : "attendee_to_organizer",
           category,
-          subject,
-          message,
+          subject: trimmedSubject,
+          message: trimmedMessage,
           event_id: organizerCase ? null : eventId,
         }),
       }),
@@ -166,6 +170,11 @@ export default function SupportPage() {
             numberOfLines={5}
             textAlignVertical="top"
           />
+          {showTextHint ? (
+            <Text className="text-sm text-muted">
+              {t("ui.supportTextRequired")}
+            </Text>
+          ) : null}
           {create.error ? (
             <Text className="text-danger">
               {(create.error as Error).message}
@@ -173,9 +182,11 @@ export default function SupportPage() {
           ) : null}
           <Button
             label={t("ui.submitCase")}
-            onPress={() => create.mutate()}
+            onPress={() => {
+              if (textValid) create.mutate();
+            }}
             loading={create.isPending}
-            disabled={!subject || !message || (!organizerCase && !eventId)}
+            disabled={!textValid || (!organizerCase && !eventId)}
           />
         </Surface>
         <View className="min-w-80 flex-[1.4] gap-3">
