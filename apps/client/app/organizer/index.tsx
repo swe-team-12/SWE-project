@@ -15,9 +15,10 @@ import {
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/providers/AuthProvider";
 import type { EventItem } from "@/types";
+import { formatDateTime } from "@/utils/date";
 
 export default function OrganizerDashboard() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user, refreshUser } = useAuth();
   const [organizationName, setOrganizationName] = useState("");
   const [phone, setPhone] = useState("");
@@ -144,7 +145,7 @@ export default function OrganizerDashboard() {
                         {event.title}
                       </Text>
                       <Text className="text-muted">
-                        {new Date(event.starts_at).toLocaleString()} ·{" "}
+                        {formatDateTime(event.starts_at, i18n.language)} ·{" "}
                         {event.venue_name}
                       </Text>
                     </View>

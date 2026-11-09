@@ -16,6 +16,7 @@ import {
 import { apiFetch, currentAccessToken, WS_URL } from "@/lib/api";
 import { fileForm } from "@/lib/files";
 import { useAuth } from "@/providers/AuthProvider";
+import { formatDateTime } from "@/utils/date";
 
 interface CaseDetail {
   id: string;
@@ -165,7 +166,7 @@ export default function SupportDetailPage() {
               <Text
                 className={`text-xs ${mine ? "text-teal-100" : "text-muted"}`}
               >
-                {new Date(message.created_at).toLocaleString(i18n.language)}
+                {formatDateTime(message.created_at, i18n.language)}
               </Text>
             </View>
           );
