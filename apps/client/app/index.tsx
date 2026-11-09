@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { router, useLocalSearchParams } from "expo-router";
+import { useEffect, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
@@ -11,11 +12,25 @@ import type { EventItem } from "@/types";
 
 export default function DiscoverPage() {
   const { t, i18n } = useTranslation();
-  const [search, setSearch] = useState("");
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
+  // Filters are mirrored into the URL (?q=&date_from=&date_to=) so they
+  // survive browser back navigation from an event detail page (#50).
+  const params = useLocalSearchParams<{
+    q?: string;
+    date_from?: string;
+    date_to?: string;
+  }>();
+  const [search, setSearch] = useState(firstParam(params.q));
+  const [dateFrom, setDateFrom] = useState(firstParam(params.date_from));
+  const [dateTo, setDateTo] = useState(firstParam(params.date_to));
   const from = toIsoDate(dateFrom, i18n.language) ?? "";
   const to = toIsoDate(dateTo, i18n.language) ?? "";
+  useEffect(() => {
+    router.setParams({
+      q: search || undefined,
+      date_from: from || undefined,
+      date_to: to || undefined,
+    });
+  }, [search, from, to]);
   const query = useQuery({
     queryKey: ["events", search, from, to],
     queryFn: () => {
@@ -121,4 +136,8 @@ function deviceTimeZone() {
   } catch {
     return "Asia/Almaty";
   }
+}
+
+function firstParam(value: string | string[] | undefined): string {
+  return (Array.isArray(value) ? value[0] : value) ?? "";
 }
