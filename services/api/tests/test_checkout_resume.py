@@ -1,3 +1,4 @@
+import operator
 import uuid
 from datetime import UTC, datetime, timedelta
 from typing import Any
@@ -61,10 +62,76 @@ async def test_reloading_an_elapsed_checkout_expires_it_and_releases_holds(monke
     assert db.commits == 1
 
 
+class OwnershipDb:
+    """Fake DB that evaluates the statement's WHERE equality criteria against stored sessions.
+
+    This keeps the ownership filter (``CheckoutSession.user_id == user.id``) observable: if the
+    endpoint stopped filtering by owner, another user's session would be returned.
+    """
+
+    def __init__(self, *sessions: CheckoutSession) -> None:
+        self.sessions = list(sessions)
+        self.commits = 0
+
+    @staticmethod
+    def _matches(session: CheckoutSession, statement: Any) -> bool:
+        for criterion in statement._where_criteria:
+            column, value = criterion.left, criterion.right
+            if column.table is not CheckoutSession.__table__ or criterion.operator is not operator.eq:
+                raise AssertionError(f"unsupported criterion: {criterion}")
+            if getattr(session, column.key) != value.effective_value:
+                return False
+        return True
+
+    async def scalar(self, statement: Any) -> Any:
+        matches = [s for s in self.sessions if self._matches(s, statement)]
+        if not matches:
+            return None
+        column = statement.selected_columns[0]
+        if column.key == "event_id":
+            return matches[0].event_id
+        return matches[0]
+
+    async def commit(self) -> None:
+        self.commits += 1
+
+
+def owned_checkout(owner: User) -> CheckoutSession:
+    session = checkout(timedelta(minutes=5))
+    session.user_id = owner.id
+    return session
+
+
 async def test_reloading_another_users_checkout_is_not_found() -> None:
+    owner, other = User(id=uuid.uuid4()), User(id=uuid.uuid4())
+    session = owned_checkout(owner)
+    db = OwnershipDb(session)
+
+    assert await commerce.get_checkout(session.id, owner, db) is session  # type: ignore[arg-type]
+
     with pytest.raises(AppError) as error:
-        await commerce.get_checkout(uuid.uuid4(), User(id=uuid.uuid4()), FakeDb(None))  # type: ignore[arg-type]
+        await commerce.get_checkout(session.id, other, db)  # type: ignore[arg-type]
     assert error.value.status == 404
+    assert error.value.code == "checkout_not_found"
+    assert session.status == CheckoutStatus.OPEN
+    assert session.user_id == owner.id
+    assert db.commits == 0
+
+
+async def test_confirming_another_users_checkout_is_not_found() -> None:
+    from app.schemas import CheckoutConfirm
+
+    owner, other = User(id=uuid.uuid4()), User(id=uuid.uuid4())
+    session = owned_checkout(owner)
+    db = OwnershipDb(session)
+    payload = CheckoutConfirm(outcome="success", idempotency_key="confirm-key-other-user")
+
+    with pytest.raises(AppError) as error:
+        await commerce.confirm_checkout(session.id, payload, other, db)  # type: ignore[arg-type]
+    assert error.value.status == 404
+    assert error.value.code == "checkout_not_found"
+    assert session.status == CheckoutStatus.OPEN
+    assert db.commits == 0
 
 
 class SequenceDb:
