@@ -7,10 +7,11 @@ import { useTranslation } from "react-i18next";
 import { EventCard } from "@/components/EventCard";
 import { ErrorBlock, Field, LoadingBlock } from "@/components/ui";
 import { apiFetch } from "@/lib/api";
+import { toIsoDate } from "@/lib/dateInput";
 import type { EventItem } from "@/types";
 
 export default function DiscoverPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   // Filters are mirrored into the URL (?q=&date_from=&date_to=) so they
   // survive browser back navigation from an event detail page (#50).
   const params = useLocalSearchParams<{
@@ -21,8 +22,8 @@ export default function DiscoverPage() {
   const [search, setSearch] = useState(firstParam(params.q));
   const [dateFrom, setDateFrom] = useState(firstParam(params.date_from));
   const [dateTo, setDateTo] = useState(firstParam(params.date_to));
-  const from = isIsoDate(dateFrom) ? dateFrom : "";
-  const to = isIsoDate(dateTo) ? dateTo : "";
+  const from = toIsoDate(dateFrom, i18n.language) ?? "";
+  const to = toIsoDate(dateTo, i18n.language) ?? "";
   useEffect(() => {
     router.setParams({
       q: search || undefined,
@@ -126,15 +127,6 @@ export default function DiscoverPage() {
         ) : null}
       </View>
     </ScrollView>
-  );
-}
-
-function isIsoDate(value: string) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-  const parsed = new Date(`${value}T00:00:00Z`);
-  return (
-    !Number.isNaN(parsed.getTime()) &&
-    parsed.toISOString().slice(0, 10) === value
   );
 }
 
