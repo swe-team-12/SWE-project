@@ -15,6 +15,7 @@ import {
 import { apiFetch } from "@/lib/api";
 import { downloadAuthenticatedFile } from "@/lib/files";
 import { useAuth } from "@/providers/AuthProvider";
+import { formatDateTime } from "@/utils/date";
 import { formatKzt } from "@/utils/format";
 
 interface SearchResults {
@@ -288,9 +289,7 @@ function AdminContent() {
                 </Text>
                 <Text className="text-xs text-muted">
                   {t("ui.eligible", {
-                    date: new Date(item.eligible_at).toLocaleString(
-                      i18n.language,
-                    ),
+                    date: formatDateTime(item.eligible_at, i18n.language),
                   })}
                 </Text>
               </View>
@@ -324,7 +323,7 @@ function AdminContent() {
                   {formatKzt(item.amount_tiyin, i18n.language)}
                 </Text>
                 <Text className="text-xs text-muted">
-                  {new Date(item.created_at).toLocaleString(i18n.language)}
+                  {formatDateTime(item.created_at, i18n.language)}
                 </Text>
               </View>
               <StatusBadge status={item.status} />

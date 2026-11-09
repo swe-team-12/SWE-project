@@ -3,7 +3,14 @@ from datetime import UTC, datetime, timedelta
 import pytest
 from pydantic import ValidationError
 
-from app.schemas import CampaignCreate, EventCreate, ScanRequest, TicketTypeCreate
+from app.schemas import (
+    CampaignCreate,
+    EventCreate,
+    ScanRequest,
+    SupportCaseCreate,
+    SupportMessageCreate,
+    TicketTypeCreate,
+)
 
 
 def event_payload() -> dict:
@@ -65,3 +72,19 @@ def test_scan_capture_time_requires_timezone() -> None:
             operation_id="operation-123",
             captured_at=datetime.now(),
         )
+
+
+def test_support_text_is_stripped_and_rejects_whitespace_only() -> None:
+    base = {"kind": "organizer_to_platform", "category": "technical"}
+    case = SupportCaseCreate(**base, subject="  Help me  ", message="\n Details \t")
+    assert case.subject == "Help me"
+    assert case.message == "Details"
+
+    with pytest.raises(ValidationError):
+        SupportCaseCreate(**base, subject="   ", message="Details")
+    with pytest.raises(ValidationError):
+        SupportCaseCreate(**base, subject="Help me", message=" \n\t ")
+
+    assert SupportMessageCreate(body="  Thanks  ").body == "Thanks"
+    with pytest.raises(ValidationError):
+        SupportMessageCreate(body="   ")

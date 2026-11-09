@@ -24,6 +24,7 @@ import {
 import { eventContentText } from "@/lib/eventContentText";
 import { useAuth } from "@/providers/AuthProvider";
 import type { EventItem, Seat } from "@/types";
+import { formatDateTime } from "@/utils/date";
 import { formatKzt, newIdempotencyKey } from "@/utils/format";
 
 interface CheckoutSession {
@@ -314,7 +315,7 @@ function CheckoutContent() {
                 </Text>
               </View>
               <Text className="text-muted">
-                {new Date(session.expires_at).toLocaleTimeString(i18n.language)}{" "}
+                {formatDateTime(session.expires_at, i18n.language, "time")}{" "}
                 · {t("ui.demoPaymentNotice")}
               </Text>
               <View className="gap-3 border-y border-teal-200 py-4">

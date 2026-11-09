@@ -17,6 +17,7 @@ import {
 import { apiFetch, currentAccessToken, WS_URL } from "@/lib/api";
 import { fileForm } from "@/lib/files";
 import { useAuth } from "@/providers/AuthProvider";
+import { formatDateTime } from "@/utils/date";
 
 interface CaseDetail {
   id: string;
@@ -44,6 +45,7 @@ function SupportDetailContent() {
   const { user } = useAuth();
   const client = useQueryClient();
   const [body, setBody] = useState("");
+  const trimmedBody = body.trim();
   const [attachment, setAttachment] =
     useState<DocumentPicker.DocumentPickerAsset>();
   const query = useQuery({
@@ -72,7 +74,7 @@ function SupportDetailContent() {
     mutationFn: async () => {
       const message = await apiFetch<{ id: string }>(
         `/support/cases/${id}/messages`,
-        { method: "POST", body: JSON.stringify({ body }) },
+        { method: "POST", body: JSON.stringify({ body: trimmedBody }) },
       );
       if (attachment) {
         const form = await fileForm(attachment);
@@ -166,7 +168,7 @@ function SupportDetailContent() {
               <Text
                 className={`text-xs ${mine ? "text-teal-100" : "text-muted"}`}
               >
-                {new Date(message.created_at).toLocaleString(i18n.language)}
+                {formatDateTime(message.created_at, i18n.language)}
               </Text>
             </View>
           );
@@ -207,9 +209,11 @@ function SupportDetailContent() {
           />
           <Button
             label={t("ui.sendReply")}
-            onPress={() => send.mutate()}
+            onPress={() => {
+              if (trimmedBody) send.mutate();
+            }}
             loading={send.isPending}
-            disabled={!body}
+            disabled={!trimmedBody}
           />
         </View>
         {send.error ? (

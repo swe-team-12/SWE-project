@@ -243,6 +243,8 @@ const en = {
     downloadBundle: "Download encrypted event bundle",
     syncQueued: "Sync queued scans ({{count}})",
     bundleSaved: "Bundle saved securely on this device.",
+    offlineUnavailable:
+      "Offline scanning is unavailable in this browser mode (for example, private browsing). Scanning still works while you are online.",
     helpCenter: "Help center",
     supportConversations: "Support conversations",
     supportHelp:
@@ -255,6 +257,8 @@ const en = {
     subject: "Subject",
     message: "Message",
     submitCase: "Submit support case",
+    supportTextRequired:
+      "Enter a subject (at least 3 characters) and a message.",
     yourCases: "Your cases",
     noCases: "No support cases yet.",
     staffStatus: "Staff status",
@@ -622,6 +626,8 @@ const ru = {
     downloadBundle: "Скачать зашифрованный список",
     syncQueued: "Синхронизировать очередь ({{count}})",
     bundleSaved: "Список безопасно сохранён на устройстве.",
+    offlineUnavailable:
+      "Офлайн-сканирование недоступно в этом режиме браузера (например, в приватном окне). Сканирование работает, пока есть подключение к сети.",
     helpCenter: "Центр помощи",
     supportConversations: "Обращения в поддержку",
     supportHelp:
@@ -634,6 +640,8 @@ const ru = {
     subject: "Тема",
     message: "Сообщение",
     submitCase: "Отправить обращение",
+    supportTextRequired:
+      "Введите тему (не менее 3 символов) и сообщение.",
     yourCases: "Ваши обращения",
     noCases: "Обращений пока нет.",
     staffStatus: "Статус для команды",
@@ -1002,6 +1010,8 @@ const kk = {
     downloadBundle: "Шифрланған іс-шара тізімін жүктеу",
     syncQueued: "Кезекті синхрондау ({{count}})",
     bundleSaved: "Тізім құрылғыда қауіпсіз сақталды.",
+    offlineUnavailable:
+      "Бұл браузер режимінде (мысалы, жеке терезеде) офлайн сканерлеу қолжетімсіз. Желіге қосылып тұрғанда сканерлеу жұмыс істейді.",
     helpCenter: "Көмек орталығы",
     supportConversations: "Қолдау өтініштері",
     supportHelp:
@@ -1014,6 +1024,8 @@ const kk = {
     subject: "Тақырып",
     message: "Хабарлама",
     submitCase: "Қолдау өтінішін жіберу",
+    supportTextRequired:
+      "Тақырыпты (кемінде 3 таңба) және хабарламаны енгізіңіз.",
     yourCases: "Сіздің өтініштеріңіз",
     noCases: "Қолдау өтініші әлі жоқ.",
     staffStatus: "Команда күйі",

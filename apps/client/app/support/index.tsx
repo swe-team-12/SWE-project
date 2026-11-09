@@ -16,6 +16,7 @@ import {
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/providers/AuthProvider";
 import type { EventItem } from "@/types";
+import { formatDateTime } from "@/utils/date";
 
 interface SupportCase {
   id: string;
@@ -37,6 +38,10 @@ function SupportContent() {
   const [category, setCategory] = useState("technical");
   const [eventId, setEventId] = useState<string>();
   const [organizerCase, setOrganizerCase] = useState(false);
+  const trimmedSubject = subject.trim();
+  const trimmedMessage = message.trim();
+  const textValid = trimmedSubject.length >= 3 && trimmedMessage.length > 0;
+  const showTextHint = (subject.length > 0 || message.length > 0) && !textValid;
   const cases = useQuery({
     queryKey: ["support-cases"],
     queryFn: () => apiFetch<SupportCase[]>("/support/cases"),
@@ -57,8 +62,8 @@ function SupportContent() {
             ? "organizer_to_platform"
             : "attendee_to_organizer",
           category,
-          subject,
-          message,
+          subject: trimmedSubject,
+          message: trimmedMessage,
           event_id: organizerCase ? null : eventId,
         }),
       }),
@@ -167,6 +172,11 @@ function SupportContent() {
             numberOfLines={5}
             textAlignVertical="top"
           />
+          {showTextHint ? (
+            <Text className="text-sm text-muted">
+              {t("ui.supportTextRequired")}
+            </Text>
+          ) : null}
           {create.error ? (
             <Text className="text-danger">
               {(create.error as Error).message}
@@ -174,9 +184,11 @@ function SupportContent() {
           ) : null}
           <Button
             label={t("ui.submitCase")}
-            onPress={() => create.mutate()}
+            onPress={() => {
+              if (textValid) create.mutate();
+            }}
             loading={create.isPending}
-            disabled={!subject || !message || (!organizerCase && !eventId)}
+            disabled={!textValid || (!organizerCase && !eventId)}
           />
         </Surface>
         <View className="min-w-80 flex-[1.4] gap-3">
@@ -207,7 +219,7 @@ function SupportContent() {
                   {t(`status.${item.category}`, {
                     defaultValue: item.category.replaceAll("_", " "),
                   })}{" "}
-                  · {new Date(item.updated_at).toLocaleString(i18n.language)}
+                  · {formatDateTime(item.updated_at, i18n.language)}
                 </Text>
               </Pressable>
             </Link>
