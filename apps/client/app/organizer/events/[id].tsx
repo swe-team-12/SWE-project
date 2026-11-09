@@ -18,6 +18,7 @@ import {
 import { API_URL, apiFetch, currentAccessToken } from "@/lib/api";
 import { fileForm } from "@/lib/files";
 import type { EventItem } from "@/types";
+import { formatDateTime } from "@/utils/date";
 import { formatKzt, newIdempotencyKey } from "@/utils/format";
 
 interface Analytics {
@@ -270,7 +271,7 @@ export default function ManageEventPage() {
             {event.title}
           </Text>
           <Text className="mt-2 text-muted">
-            {new Date(event.starts_at).toLocaleString(i18n.language)} ·{" "}
+            {formatDateTime(event.starts_at, i18n.language)} ·{" "}
             {event.venue_name}
           </Text>
         </View>
@@ -770,7 +771,7 @@ export default function ManageEventPage() {
             </Text>
             <Text className="text-muted">{entry.description}</Text>
             <Text className="text-xs text-muted">
-              {new Date(entry.timestamp).toLocaleString(i18n.language)}
+              {formatDateTime(entry.timestamp, i18n.language)}
             </Text>
           </View>
         ))}

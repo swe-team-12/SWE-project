@@ -8,6 +8,7 @@ import { apiFetch } from "@/lib/api";
 import { notificationHref } from "@/lib/notificationHref";
 import { notificationText } from "@/lib/notificationText";
 import { useAuth } from "@/providers/AuthProvider";
+import { formatDateTime } from "@/utils/date";
 
 interface NotificationItem {
   id: string;
@@ -77,7 +78,7 @@ export default function NotificationsPage() {
             </View>
             <Text className="leading-6 text-muted">{message.body}</Text>
             <Text className="text-xs text-muted">
-              {new Date(item.created_at).toLocaleString(i18n.language)}
+              {formatDateTime(item.created_at, i18n.language)}
             </Text>
           </Surface>
         );

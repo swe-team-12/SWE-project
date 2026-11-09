@@ -16,6 +16,7 @@ import {
 import { ApiError, apiFetch } from "@/lib/api";
 import {
   getOfflineBundle,
+  isOfflineStorageAvailable,
   type OfflineBundle,
   queueOfflineScan,
   queuedScanCount,
@@ -59,6 +60,7 @@ export default function ScannerPage() {
   const [lastResult, setLastResult] = useState<ScanResult>();
   const [manual, setManual] = useState("");
   const [queued, setQueued] = useState(0);
+  const [offlineAvailable, setOfflineAvailable] = useState(true);
   const lastScan = useRef<{ value: string; at: number } | undefined>(undefined);
   const events = useQuery({
     queryKey: ["scanner-events"],
@@ -84,7 +86,28 @@ export default function ScannerPage() {
     enabled: !!selectedEventId && manual.length >= 2,
   });
   useEffect(() => {
-    void queuedScanCount(selectedEventId).then(setQueued);
+    let active = true;
+    // Private browsing modes (e.g. Firefox) block the storage expo-sqlite needs;
+    // the scanner then works online only instead of surfacing an uncaught error.
+    void isOfflineStorageAvailable()
+      .catch(() => false)
+      .then((available) => {
+        if (active) setOfflineAvailable(available);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+  useEffect(() => {
+    let active = true;
+    void queuedScanCount(selectedEventId)
+      .catch(() => 0)
+      .then((count) => {
+        if (active) setQueued(count);
+      });
+    return () => {
+      active = false;
+    };
   }, [selectedEventId, lastResult]);
 
   const scan = useMutation({
@@ -221,6 +244,13 @@ export default function ScannerPage() {
           </Text>
         </View>
       </View>
+      {!offlineAvailable ? (
+        <Surface className="border-amber-200 bg-amber-50">
+          <Text className="font-bold text-warning">
+            {t("ui.offlineUnavailable")}
+          </Text>
+        </Surface>
+      ) : null}
       {events.isLoading ? <LoadingBlock /> : null}
       {events.error ? (
         <ErrorBlock message={(events.error as Error).message} />
@@ -357,13 +387,14 @@ export default function ScannerPage() {
                 variant="secondary"
                 onPress={() => download.mutate()}
                 loading={download.isPending}
+                disabled={!offlineAvailable}
               />
               <Button
                 label={t("ui.syncQueued", { count: queued })}
                 variant="secondary"
                 onPress={() => synchronize.mutate()}
                 loading={synchronize.isPending}
-                disabled={!queued}
+                disabled={!offlineAvailable || !queued}
               />
               {download.isSuccess ? (
                 <Text className="text-sm font-bold text-success">
