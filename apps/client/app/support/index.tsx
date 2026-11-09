@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { RequireAuth } from "@/components/RequireAuth";
 import {
   Button,
   ErrorBlock,
@@ -15,6 +16,7 @@ import {
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/providers/AuthProvider";
 import type { EventItem } from "@/types";
+import { formatDateTime } from "@/utils/date";
 
 interface SupportCase {
   id: string;
@@ -27,7 +29,7 @@ interface SupportCase {
   updated_at: string;
 }
 
-export default function SupportPage() {
+function SupportContent() {
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const client = useQueryClient();
@@ -36,6 +38,10 @@ export default function SupportPage() {
   const [category, setCategory] = useState("technical");
   const [eventId, setEventId] = useState<string>();
   const [organizerCase, setOrganizerCase] = useState(false);
+  const trimmedSubject = subject.trim();
+  const trimmedMessage = message.trim();
+  const textValid = trimmedSubject.length >= 3 && trimmedMessage.length > 0;
+  const showTextHint = (subject.length > 0 || message.length > 0) && !textValid;
   const cases = useQuery({
     queryKey: ["support-cases"],
     queryFn: () => apiFetch<SupportCase[]>("/support/cases"),
@@ -56,8 +62,8 @@ export default function SupportPage() {
             ? "organizer_to_platform"
             : "attendee_to_organizer",
           category,
-          subject,
-          message,
+          subject: trimmedSubject,
+          message: trimmedMessage,
           event_id: organizerCase ? null : eventId,
         }),
       }),
@@ -67,7 +73,8 @@ export default function SupportPage() {
       await client.invalidateQueries({ queryKey: ["support-cases"] });
     },
   });
-  if (!user) return <ErrorBlock message={t("ui.supportHelp")} />;
+  // RequireAuth renders the signed-out state before this mounts.
+  if (!user) return null;
   return (
     <ScrollView contentContainerClassName="gap-7 pb-16">
       <View>
@@ -165,6 +172,11 @@ export default function SupportPage() {
             numberOfLines={5}
             textAlignVertical="top"
           />
+          {showTextHint ? (
+            <Text className="text-sm text-muted">
+              {t("ui.supportTextRequired")}
+            </Text>
+          ) : null}
           {create.error ? (
             <Text className="text-danger">
               {(create.error as Error).message}
@@ -172,9 +184,11 @@ export default function SupportPage() {
           ) : null}
           <Button
             label={t("ui.submitCase")}
-            onPress={() => create.mutate()}
+            onPress={() => {
+              if (textValid) create.mutate();
+            }}
             loading={create.isPending}
-            disabled={!subject || !message || (!organizerCase && !eventId)}
+            disabled={!textValid || (!organizerCase && !eventId)}
           />
         </Surface>
         <View className="min-w-80 flex-[1.4] gap-3">
@@ -205,7 +219,7 @@ export default function SupportPage() {
                   {t(`status.${item.category}`, {
                     defaultValue: item.category.replaceAll("_", " "),
                   })}{" "}
-                  · {new Date(item.updated_at).toLocaleString(i18n.language)}
+                  · {formatDateTime(item.updated_at, i18n.language)}
                 </Text>
               </Pressable>
             </Link>
@@ -218,5 +232,13 @@ export default function SupportPage() {
         </View>
       </View>
     </ScrollView>
+  );
+}
+
+export default function SupportPage() {
+  return (
+    <RequireAuth>
+      <SupportContent />
+    </RequireAuth>
   );
 }

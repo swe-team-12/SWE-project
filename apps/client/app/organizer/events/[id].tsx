@@ -6,6 +6,7 @@ import { Image, ScrollView, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { BarChart, Funnel, LineChart } from "@/components/Charts";
+import { RequireAuth } from "@/components/RequireAuth";
 import {
   Button,
   ErrorBlock,
@@ -18,6 +19,7 @@ import {
 import { API_URL, apiFetch, currentAccessToken } from "@/lib/api";
 import { fileForm } from "@/lib/files";
 import type { EventItem } from "@/types";
+import { formatDateTime } from "@/utils/date";
 import { formatKzt, newIdempotencyKey } from "@/utils/format";
 
 interface Analytics {
@@ -64,7 +66,7 @@ interface StaffMember {
   role: "manager" | "support" | "finance" | "check_in";
 }
 
-export default function ManageEventPage() {
+function ManageEventContent() {
   const { t, i18n } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const client = useQueryClient();
@@ -270,7 +272,7 @@ export default function ManageEventPage() {
             {event.title}
           </Text>
           <Text className="mt-2 text-muted">
-            {new Date(event.starts_at).toLocaleString(i18n.language)} ·{" "}
+            {formatDateTime(event.starts_at, i18n.language)} ·{" "}
             {event.venue_name}
           </Text>
         </View>
@@ -770,7 +772,7 @@ export default function ManageEventPage() {
             </Text>
             <Text className="text-muted">{entry.description}</Text>
             <Text className="text-xs text-muted">
-              {new Date(entry.timestamp).toLocaleString(i18n.language)}
+              {formatDateTime(entry.timestamp, i18n.language)}
             </Text>
           </View>
         ))}
@@ -969,5 +971,17 @@ function EventSettings({
         <Text className="text-danger">{(save.error as Error).message}</Text>
       ) : null}
     </Surface>
+  );
+}
+
+export default function ManageEventPage() {
+  const { t } = useTranslation();
+  return (
+    <RequireAuth
+      title={t("ui.organizerSignIn")}
+      message={t("ui.organizerSignInHelp")}
+    >
+      <ManageEventContent />
+    </RequireAuth>
   );
 }

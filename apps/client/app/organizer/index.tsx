@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { RequireAuth } from "@/components/RequireAuth";
 import {
   Button,
   ErrorBlock,
@@ -15,9 +16,10 @@ import {
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/providers/AuthProvider";
 import type { EventItem } from "@/types";
+import { formatDateTime } from "@/utils/date";
 
-export default function OrganizerDashboard() {
-  const { t } = useTranslation();
+function OrganizerDashboardContent() {
+  const { t, i18n } = useTranslation();
   const { user, refreshUser } = useAuth();
   const [organizationName, setOrganizationName] = useState("");
   const [phone, setPhone] = useState("");
@@ -42,21 +44,8 @@ export default function OrganizerDashboard() {
       await events.refetch();
     },
   });
-  if (!user) {
-    return (
-      <Surface className="mx-auto mt-8 max-w-xl gap-4">
-        <Text className="text-3xl font-black text-ink">
-          {t("ui.organizerSignIn")}
-        </Text>
-        <Text className="text-muted">{t("ui.organizerSignInHelp")}</Text>
-        <Link href="/login" asChild>
-          <Pressable className="min-h-12 items-center justify-center rounded-2xl bg-brand">
-            <Text className="font-bold text-white">{t("common.signIn")}</Text>
-          </Pressable>
-        </Link>
-      </Surface>
-    );
-  }
+  // RequireAuth renders the signed-out state before this mounts.
+  if (!user) return null;
   if (!user.roles.includes("organizer")) {
     return (
       <Surface className="mx-auto mt-8 w-full max-w-xl gap-5 p-7">
@@ -144,7 +133,7 @@ export default function OrganizerDashboard() {
                         {event.title}
                       </Text>
                       <Text className="text-muted">
-                        {new Date(event.starts_at).toLocaleString()} ·{" "}
+                        {formatDateTime(event.starts_at, i18n.language)} ·{" "}
                         {event.venue_name}
                       </Text>
                     </View>
@@ -169,5 +158,17 @@ export default function OrganizerDashboard() {
         </Surface>
       ) : null}
     </ScrollView>
+  );
+}
+
+export default function OrganizerDashboard() {
+  const { t } = useTranslation();
+  return (
+    <RequireAuth
+      title={t("ui.organizerSignIn")}
+      message={t("ui.organizerSignInHelp")}
+    >
+      <OrganizerDashboardContent />
+    </RequireAuth>
   );
 }

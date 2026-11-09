@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ScrollView, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { RequireAuth } from "@/components/RequireAuth";
 import {
   ErrorBlock,
   LoadingBlock,
@@ -10,6 +11,7 @@ import {
 } from "@/components/ui";
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/providers/AuthProvider";
+import { formatDateTime } from "@/utils/date";
 import { formatKzt } from "@/utils/format";
 
 interface Order {
@@ -21,15 +23,16 @@ interface Order {
   created_at: string;
 }
 
-export default function OrdersPage() {
-  const { t } = useTranslation();
+function OrdersContent() {
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const query = useQuery({
     queryKey: ["orders"],
     queryFn: () => apiFetch<Order[]>("/orders"),
     enabled: !!user,
   });
-  if (!user) return <ErrorBlock message={t("ui.signInHelp")} />;
+  // RequireAuth renders the signed-out state before this mounts.
+  if (!user) return null;
   return (
     <ScrollView contentContainerClassName="gap-6 pb-16">
       <View>
@@ -54,7 +57,7 @@ export default function OrdersPage() {
               {order.order_number}
             </Text>
             <Text className="font-bold text-ink">
-              {new Date(order.created_at).toLocaleString()}
+              {formatDateTime(order.created_at, i18n.language)}
             </Text>
             <Text className="text-sm text-muted">
               {t("ui.eventLabel", { id: order.event_id })}
@@ -72,5 +75,13 @@ export default function OrdersPage() {
         <Text className="py-16 text-center text-muted">{t("ui.noOrders")}</Text>
       ) : null}
     </ScrollView>
+  );
+}
+
+export default function OrdersPage() {
+  return (
+    <RequireAuth>
+      <OrdersContent />
+    </RequireAuth>
   );
 }

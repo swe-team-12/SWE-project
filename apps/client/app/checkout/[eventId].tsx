@@ -1,10 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, router, useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { SeatMap } from "@/components/SeatMap";
+import { RequireAuth } from "@/components/RequireAuth";
 import {
   Button,
   ErrorBlock,
@@ -23,6 +24,7 @@ import {
 import { eventContentText } from "@/lib/eventContentText";
 import { useAuth } from "@/providers/AuthProvider";
 import type { EventItem, Seat } from "@/types";
+import { formatDateTime } from "@/utils/date";
 import { formatKzt, newIdempotencyKey } from "@/utils/format";
 
 interface CheckoutSession {
@@ -51,7 +53,7 @@ function toNotice(error: unknown, fallbackKey: string): CheckoutNotice {
   return { key: fallbackKey };
 }
 
-export default function CheckoutPage() {
+function CheckoutContent() {
   const { t, i18n } = useTranslation();
   const {
     eventId,
@@ -189,21 +191,8 @@ export default function CheckoutPage() {
     },
   });
 
-  if (!user) {
-    return (
-      <Surface className="mx-auto mt-8 w-full max-w-xl items-start gap-5 p-7">
-        <Text className="text-3xl font-black text-ink">
-          {t("common.signIn")}
-        </Text>
-        <Text className="text-muted">{t("ui.protectedTicketsHelp")}</Text>
-        <Link href="/login" asChild>
-          <Pressable className="min-h-12 justify-center rounded-2xl bg-brand px-6">
-            <Text className="font-bold text-white">{t("common.signIn")}</Text>
-          </Pressable>
-        </Link>
-      </Surface>
-    );
-  }
+  // RequireAuth renders the signed-out state before this mounts.
+  if (!user) return null;
   if (eventQuery.isLoading || restoredQuery.isLoading) return <LoadingBlock />;
   if (eventQuery.error || !event)
     return (
@@ -326,7 +315,7 @@ export default function CheckoutPage() {
                 </Text>
               </View>
               <Text className="text-muted">
-                {new Date(session.expires_at).toLocaleTimeString(i18n.language)}{" "}
+                {formatDateTime(session.expires_at, i18n.language, "time")}{" "}
                 · {t("ui.demoPaymentNotice")}
               </Text>
               <View className="gap-3 border-y border-teal-200 py-4">
@@ -429,5 +418,17 @@ export default function CheckoutPage() {
         </Surface>
       </View>
     </ScrollView>
+  );
+}
+
+export default function CheckoutPage() {
+  const { t } = useTranslation();
+  return (
+    <RequireAuth
+      title={t("common.signIn")}
+      message={t("ui.protectedTicketsHelp")}
+    >
+      <CheckoutContent />
+    </RequireAuth>
   );
 }

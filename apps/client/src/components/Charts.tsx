@@ -15,6 +15,10 @@ const INK = "#102A43";
 const LABEL_SIZE = 17;
 const VALUE_SIZE = 16;
 
+// Accessibility: the wrapping View is the single screen-reader element (with
+// the text summary); the SVG is decorative. Never pass `accessible` to <Svg>:
+// react-native-svg forwards it to the DOM on web as an unknown attribute.
+
 export function BarChart({
   rows,
 }: {
@@ -28,6 +32,7 @@ export function BarChart({
   return (
     <View
       className="gap-3"
+      accessible
       accessibilityRole="summary"
       accessibilityLabel={summary}
     >
@@ -35,7 +40,7 @@ export function BarChart({
         width="100%"
         height={height}
         viewBox={`0 0 ${WIDTH} ${height}`}
-        accessible={false}
+        aria-hidden
       >
         {rows.map((row, index) => {
           const y = index * 48 + 8;
@@ -110,6 +115,7 @@ export function LineChart({
   return (
     <View
       className="gap-3"
+      accessible
       accessibilityRole="summary"
       accessibilityLabel={summary}
     >
@@ -117,7 +123,7 @@ export function LineChart({
         width="100%"
         height={height}
         viewBox={`0 0 ${WIDTH} ${height}`}
-        accessible={false}
+        aria-hidden
       >
         {[0, 0.5, 1].map((fraction) => {
           const y = chartBottom - fraction * (chartBottom - chartTop);
@@ -193,12 +199,12 @@ export function Funnel({
     .map((item) => `${item.label}: ${item.value}`)
     .join("; ");
   return (
-    <View accessibilityRole="summary" accessibilityLabel={summary}>
+    <View accessible accessibilityRole="summary" accessibilityLabel={summary}>
       <Svg
         width="100%"
         height={height}
         viewBox={`0 0 ${WIDTH} ${height}`}
-        accessible={false}
+        aria-hidden
       >
         {values.map((item, index) => {
           const width = Math.max(190, (item.value / max) * 500);

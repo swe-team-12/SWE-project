@@ -50,11 +50,23 @@ async function encryptionKey(): Promise<Uint8Array> {
   return key;
 }
 
-async function db(): Promise<SQLite.SQLiteDatabase> {
-  if (!database) {
-    database = SQLite.openDatabaseAsync("biletflow-offline.db").then(
-      async (instance) => {
-        await instance.execAsync(`
+/**
+ * Raised when the device or browser cannot provide persistent offline storage,
+ * e.g. Firefox Private Browsing, which disables the origin private file system
+ * that expo-sqlite relies on for the web.
+ */
+export class OfflineStorageUnavailableError extends Error {
+  constructor(cause?: unknown) {
+    super("Offline storage is unavailable in this browser mode.");
+    this.name = "OfflineStorageUnavailableError";
+    this.cause = cause;
+  }
+}
+
+async function openDatabase(): Promise<SQLite.SQLiteDatabase> {
+  try {
+    const instance = await SQLite.openDatabaseAsync("biletflow-offline.db");
+    await instance.execAsync(`
         PRAGMA journal_mode = WAL;
         CREATE TABLE IF NOT EXISTS offline_bundles (
           event_id TEXT PRIMARY KEY NOT NULL,
@@ -70,11 +82,30 @@ async function db(): Promise<SQLite.SQLiteDatabase> {
           sync_status TEXT NOT NULL DEFAULT 'queued'
         );
       `);
-        return instance;
-      },
-    );
+    return instance;
+  } catch (error) {
+    throw new OfflineStorageUnavailableError(error);
   }
+}
+
+async function db(): Promise<SQLite.SQLiteDatabase> {
+  if (!database) database = openDatabase();
   return database;
+}
+
+/** Resolves to the database, or null when offline storage cannot be opened. */
+async function optionalDb(): Promise<SQLite.SQLiteDatabase | null> {
+  try {
+    return await db();
+  } catch (error) {
+    if (error instanceof OfflineStorageUnavailableError) return null;
+    throw error;
+  }
+}
+
+/** Whether offline bundles and the offline scan queue can be used here. */
+export async function isOfflineStorageAvailable(): Promise<boolean> {
+  return (await optionalDb()) !== null;
 }
 
 export interface OfflineBundle {
@@ -180,7 +211,8 @@ export async function saveOfflineBundle(
 export async function getOfflineBundle(
   eventId: string,
 ): Promise<OfflineBundle | null> {
-  const instance = await db();
+  const instance = await optionalDb();
+  if (!instance) return null;
   const row = await instance.getFirstAsync<{
     nonce: string;
     ciphertext: string;
@@ -219,7 +251,8 @@ export async function queueOfflineScan(
 }
 
 export async function queuedScanCount(eventId?: string): Promise<number> {
-  const instance = await db();
+  const instance = await optionalDb();
+  if (!instance) return 0;
   const row = eventId
     ? await instance.getFirstAsync<{ count: number }>(
         "SELECT COUNT(*) AS count FROM scan_queue WHERE sync_status='queued' AND event_id=?",
@@ -235,7 +268,8 @@ export async function syncOfflineScans(): Promise<{
   accepted: number;
   conflicts: number;
 }> {
-  const instance = await db();
+  const instance = await optionalDb();
+  if (!instance) return { accepted: 0, conflicts: 0 };
   const rows = await instance.getAllAsync<{
     operation_id: string;
     event_id: string;

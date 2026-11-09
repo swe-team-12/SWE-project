@@ -346,9 +346,19 @@ class SupportCaseCreate(BaseModel):
     order_id: uuid.UUID | None = None
     ticket_id: uuid.UUID | None = None
 
+    @field_validator("subject", "message", mode="before")
+    @classmethod
+    def strip_text(cls, value: Any) -> Any:
+        return value.strip() if isinstance(value, str) else value
+
 
 class SupportMessageCreate(BaseModel):
     body: str = Field(min_length=1, max_length=10_000)
+
+    @field_validator("body", mode="before")
+    @classmethod
+    def strip_body(cls, value: Any) -> Any:
+        return value.strip() if isinstance(value, str) else value
 
 
 class SupportStatusUpdate(BaseModel):

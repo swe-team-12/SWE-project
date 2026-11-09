@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { RequireAuth } from "@/components/RequireAuth";
 import { Button, Field, Surface } from "@/components/ui";
 import { apiFetch } from "@/lib/api";
 import type { EventItem } from "@/types";
@@ -14,7 +15,7 @@ function isoInDays(days: number, hour = 10) {
   return value.toISOString();
 }
 
-export default function NewEventPage() {
+function NewEventContent() {
   const { t } = useTranslation();
   const client = useQueryClient();
   const [title, setTitle] = useState("");
@@ -193,5 +194,17 @@ export default function NewEventPage() {
         />
       </Surface>
     </ScrollView>
+  );
+}
+
+export default function NewEventPage() {
+  const { t } = useTranslation();
+  return (
+    <RequireAuth
+      title={t("ui.organizerSignIn")}
+      message={t("ui.organizerSignInHelp")}
+    >
+      <NewEventContent />
+    </RequireAuth>
   );
 }

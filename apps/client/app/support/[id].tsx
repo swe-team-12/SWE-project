@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Linking, ScrollView, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { RequireAuth } from "@/components/RequireAuth";
 import {
   Button,
   ErrorBlock,
@@ -16,6 +17,7 @@ import {
 import { apiFetch, currentAccessToken, WS_URL } from "@/lib/api";
 import { fileForm } from "@/lib/files";
 import { useAuth } from "@/providers/AuthProvider";
+import { formatDateTime } from "@/utils/date";
 
 interface CaseDetail {
   id: string;
@@ -37,12 +39,13 @@ interface CaseDetail {
   }[];
 }
 
-export default function SupportDetailPage() {
+function SupportDetailContent() {
   const { t, i18n } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user } = useAuth();
   const client = useQueryClient();
   const [body, setBody] = useState("");
+  const trimmedBody = body.trim();
   const [attachment, setAttachment] =
     useState<DocumentPicker.DocumentPickerAsset>();
   const query = useQuery({
@@ -71,7 +74,7 @@ export default function SupportDetailPage() {
     mutationFn: async () => {
       const message = await apiFetch<{ id: string }>(
         `/support/cases/${id}/messages`,
-        { method: "POST", body: JSON.stringify({ body }) },
+        { method: "POST", body: JSON.stringify({ body: trimmedBody }) },
       );
       if (attachment) {
         const form = await fileForm(attachment);
@@ -165,7 +168,7 @@ export default function SupportDetailPage() {
               <Text
                 className={`text-xs ${mine ? "text-teal-100" : "text-muted"}`}
               >
-                {new Date(message.created_at).toLocaleString(i18n.language)}
+                {formatDateTime(message.created_at, i18n.language)}
               </Text>
             </View>
           );
@@ -206,9 +209,11 @@ export default function SupportDetailPage() {
           />
           <Button
             label={t("ui.sendReply")}
-            onPress={() => send.mutate()}
+            onPress={() => {
+              if (trimmedBody) send.mutate();
+            }}
             loading={send.isPending}
-            disabled={!body}
+            disabled={!trimmedBody}
           />
         </View>
         {send.error ? (
@@ -216,5 +221,13 @@ export default function SupportDetailPage() {
         ) : null}
       </Surface>
     </ScrollView>
+  );
+}
+
+export default function SupportDetailPage() {
+  return (
+    <RequireAuth>
+      <SupportDetailContent />
+    </RequireAuth>
   );
 }

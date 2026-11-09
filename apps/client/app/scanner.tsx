@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { RequireAuth } from "@/components/RequireAuth";
 import {
   Button,
   ErrorBlock,
@@ -16,6 +17,7 @@ import {
 import { ApiError, apiFetch } from "@/lib/api";
 import {
   getOfflineBundle,
+  isOfflineStorageAvailable,
   type OfflineBundle,
   queueOfflineScan,
   queuedScanCount,
@@ -49,7 +51,7 @@ interface ScanResult {
   message: string;
 }
 
-export default function ScannerPage() {
+function ScannerContent() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const client = useQueryClient();
@@ -59,6 +61,7 @@ export default function ScannerPage() {
   const [lastResult, setLastResult] = useState<ScanResult>();
   const [manual, setManual] = useState("");
   const [queued, setQueued] = useState(0);
+  const [offlineAvailable, setOfflineAvailable] = useState(true);
   const lastScan = useRef<{ value: string; at: number } | undefined>(undefined);
   const events = useQuery({
     queryKey: ["scanner-events"],
@@ -84,7 +87,28 @@ export default function ScannerPage() {
     enabled: !!selectedEventId && manual.length >= 2,
   });
   useEffect(() => {
-    void queuedScanCount(selectedEventId).then(setQueued);
+    let active = true;
+    // Private browsing modes (e.g. Firefox) block the storage expo-sqlite needs;
+    // the scanner then works online only instead of surfacing an uncaught error.
+    void isOfflineStorageAvailable()
+      .catch(() => false)
+      .then((available) => {
+        if (active) setOfflineAvailable(available);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+  useEffect(() => {
+    let active = true;
+    void queuedScanCount(selectedEventId)
+      .catch(() => 0)
+      .then((count) => {
+        if (active) setQueued(count);
+      });
+    return () => {
+      active = false;
+    };
   }, [selectedEventId, lastResult]);
 
   const scan = useMutation({
@@ -203,7 +227,8 @@ export default function ScannerPage() {
     lastScan.current = { value: data, at: now };
     scan.mutate(data);
   };
-  if (!user) return <ErrorBlock message={t("ui.noAssignedEvents")} />;
+  // RequireAuth renders the signed-out state before this mounts.
+  if (!user) return null;
   return (
     <ScrollView contentContainerClassName="gap-6 pb-16">
       <View className="flex-row flex-wrap items-end justify-between gap-4">
@@ -221,6 +246,13 @@ export default function ScannerPage() {
           </Text>
         </View>
       </View>
+      {!offlineAvailable ? (
+        <Surface className="border-amber-200 bg-amber-50">
+          <Text className="font-bold text-warning">
+            {t("ui.offlineUnavailable")}
+          </Text>
+        </Surface>
+      ) : null}
       {events.isLoading ? <LoadingBlock /> : null}
       {events.error ? (
         <ErrorBlock message={(events.error as Error).message} />
@@ -357,13 +389,14 @@ export default function ScannerPage() {
                 variant="secondary"
                 onPress={() => download.mutate()}
                 loading={download.isPending}
+                disabled={!offlineAvailable}
               />
               <Button
                 label={t("ui.syncQueued", { count: queued })}
                 variant="secondary"
                 onPress={() => synchronize.mutate()}
                 loading={synchronize.isPending}
-                disabled={!queued}
+                disabled={!offlineAvailable || !queued}
               />
               {download.isSuccess ? (
                 <Text className="text-sm font-bold text-success">
@@ -380,5 +413,13 @@ export default function ScannerPage() {
         </View>
       ) : null}
     </ScrollView>
+  );
+}
+
+export default function ScannerPage() {
+  return (
+    <RequireAuth>
+      <ScannerContent />
+    </RequireAuth>
   );
 }
