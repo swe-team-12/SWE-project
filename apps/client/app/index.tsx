@@ -6,15 +6,16 @@ import { useTranslation } from "react-i18next";
 import { EventCard } from "@/components/EventCard";
 import { ErrorBlock, Field, LoadingBlock } from "@/components/ui";
 import { apiFetch } from "@/lib/api";
+import { toIsoDate } from "@/lib/dateInput";
 import type { EventItem } from "@/types";
 
 export default function DiscoverPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [search, setSearch] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
-  const from = isIsoDate(dateFrom) ? dateFrom : "";
-  const to = isIsoDate(dateTo) ? dateTo : "";
+  const from = toIsoDate(dateFrom, i18n.language) ?? "";
+  const to = toIsoDate(dateTo, i18n.language) ?? "";
   const query = useQuery({
     queryKey: ["events", search, from, to],
     queryFn: () => {
@@ -111,15 +112,6 @@ export default function DiscoverPage() {
         ) : null}
       </View>
     </ScrollView>
-  );
-}
-
-function isIsoDate(value: string) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-  const parsed = new Date(`${value}T00:00:00Z`);
-  return (
-    !Number.isNaN(parsed.getTime()) &&
-    parsed.toISOString().slice(0, 10) === value
   );
 }
 
