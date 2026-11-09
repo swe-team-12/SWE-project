@@ -10,6 +10,7 @@ import {
 } from "@/components/ui";
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/providers/AuthProvider";
+import { formatDateTime } from "@/utils/date";
 import { formatKzt } from "@/utils/format";
 
 interface Order {
@@ -22,7 +23,7 @@ interface Order {
 }
 
 export default function OrdersPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const query = useQuery({
     queryKey: ["orders"],
@@ -54,7 +55,7 @@ export default function OrdersPage() {
               {order.order_number}
             </Text>
             <Text className="font-bold text-ink">
-              {new Date(order.created_at).toLocaleString()}
+              {formatDateTime(order.created_at, i18n.language)}
             </Text>
             <Text className="text-sm text-muted">
               {t("ui.eventLabel", { id: order.event_id })}

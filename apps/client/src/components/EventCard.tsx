@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { placeText } from "@/lib/placeText";
 import type { EventItem } from "@/types";
+import { formatDateTime } from "@/utils/date";
 import { formatKzt } from "@/utils/format";
 import { StatusBadge, Surface } from "./ui";
 
@@ -39,10 +40,7 @@ export function EventCard({ event }: { event: EventItem }) {
       </ImageBackground>
       <View className="gap-3 px-5 pb-5">
         <Text className="font-semibold text-muted">
-          {new Intl.DateTimeFormat(i18n.language, {
-            dateStyle: "medium",
-            timeStyle: "short",
-          }).format(new Date(event.starts_at))}
+          {formatDateTime(event.starts_at, i18n.language, "medium")}
         </Text>
         <Text className="text-ink">
           {event.venue_name} · {placeText(event.city, i18n.language)}
