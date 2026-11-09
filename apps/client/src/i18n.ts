@@ -101,6 +101,9 @@ const en = {
     acceptInvitation: "Accept invitation and open event",
     protectedTickets: "Your tickets are protected",
     protectedTicketsHelp: "Sign in to view, download, or print your tickets.",
+    signInRequired: "Sign in required",
+    signInRequiredHelp:
+      "This page is only available to signed-in users. Sign in to continue.",
     wallet: "Wallet",
     admissionTicket: "Admission ticket",
     keepPrivate: "ADMISSION QR · KEEP PRIVATE",
@@ -478,6 +481,9 @@ const ru = {
     protectedTickets: "Ваши билеты защищены",
     protectedTicketsHelp:
       "Войдите, чтобы просматривать, скачивать и печатать билеты.",
+    signInRequired: "Требуется вход",
+    signInRequiredHelp:
+      "Эта страница доступна только после входа. Войдите, чтобы продолжить.",
     wallet: "Кошелёк",
     admissionTicket: "Входной билет",
     keepPrivate: "ВХОДНОЙ QR · НЕ ПЕРЕДАВАТЬ",
@@ -855,6 +861,9 @@ const kk = {
     protectedTickets: "Билеттеріңіз қорғалған",
     protectedTicketsHelp:
       "Билеттерді көру, жүктеу немесе басып шығару үшін кіріңіз.",
+    signInRequired: "Кіру қажет",
+    signInRequiredHelp:
+      "Бұл бет тек жүйеге кірген пайдаланушыларға қолжетімді. Жалғастыру үшін кіріңіз.",
     wallet: "Әмиян",
     admissionTicket: "Кіру билеті",
     keepPrivate: "КІРУ QR · ҚҰПИЯ САҚТАҢЫЗ",

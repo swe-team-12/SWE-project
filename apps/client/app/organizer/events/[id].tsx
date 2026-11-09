@@ -6,6 +6,7 @@ import { Image, ScrollView, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { BarChart, Funnel, LineChart } from "@/components/Charts";
+import { RequireAuth } from "@/components/RequireAuth";
 import {
   Button,
   ErrorBlock,
@@ -64,7 +65,7 @@ interface StaffMember {
   role: "manager" | "support" | "finance" | "check_in";
 }
 
-export default function ManageEventPage() {
+function ManageEventContent() {
   const { t, i18n } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const client = useQueryClient();
@@ -969,5 +970,17 @@ function EventSettings({
         <Text className="text-danger">{(save.error as Error).message}</Text>
       ) : null}
     </Surface>
+  );
+}
+
+export default function ManageEventPage() {
+  const { t } = useTranslation();
+  return (
+    <RequireAuth
+      title={t("ui.organizerSignIn")}
+      message={t("ui.organizerSignInHelp")}
+    >
+      <ManageEventContent />
+    </RequireAuth>
   );
 }

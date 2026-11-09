@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ScrollView, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { RequireAuth } from "@/components/RequireAuth";
 import {
   ErrorBlock,
   LoadingBlock,
@@ -21,7 +22,7 @@ interface Order {
   created_at: string;
 }
 
-export default function OrdersPage() {
+function OrdersContent() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const query = useQuery({
@@ -29,7 +30,8 @@ export default function OrdersPage() {
     queryFn: () => apiFetch<Order[]>("/orders"),
     enabled: !!user,
   });
-  if (!user) return <ErrorBlock message={t("ui.signInHelp")} />;
+  // RequireAuth renders the signed-out state before this mounts.
+  if (!user) return null;
   return (
     <ScrollView contentContainerClassName="gap-6 pb-16">
       <View>
@@ -72,5 +74,13 @@ export default function OrdersPage() {
         <Text className="py-16 text-center text-muted">{t("ui.noOrders")}</Text>
       ) : null}
     </ScrollView>
+  );
+}
+
+export default function OrdersPage() {
+  return (
+    <RequireAuth>
+      <OrdersContent />
+    </RequireAuth>
   );
 }

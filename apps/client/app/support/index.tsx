@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { RequireAuth } from "@/components/RequireAuth";
 import {
   Button,
   ErrorBlock,
@@ -27,7 +28,7 @@ interface SupportCase {
   updated_at: string;
 }
 
-export default function SupportPage() {
+function SupportContent() {
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const client = useQueryClient();
@@ -67,7 +68,8 @@ export default function SupportPage() {
       await client.invalidateQueries({ queryKey: ["support-cases"] });
     },
   });
-  if (!user) return <ErrorBlock message={t("ui.supportHelp")} />;
+  // RequireAuth renders the signed-out state before this mounts.
+  if (!user) return null;
   return (
     <ScrollView contentContainerClassName="gap-7 pb-16">
       <View>
@@ -218,5 +220,13 @@ export default function SupportPage() {
         </View>
       </View>
     </ScrollView>
+  );
+}
+
+export default function SupportPage() {
+  return (
+    <RequireAuth>
+      <SupportContent />
+    </RequireAuth>
   );
 }

@@ -5,6 +5,10 @@ import i18n from "@/i18n";
 import { apiFetch } from "@/lib/api";
 import AdminPage from "../../app/admin";
 
+jest.mock("expo-router", () => ({
+  Link: ({ children }: { children: unknown }) => children,
+  usePathname: () => "/admin",
+}));
 jest.mock("@/lib/api", () => ({ apiFetch: jest.fn() }));
 jest.mock("@/lib/files", () => ({ downloadAuthenticatedFile: jest.fn() }));
 jest.mock("@/providers/AuthProvider", () => ({

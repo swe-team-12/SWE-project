@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Linking, ScrollView, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { RequireAuth } from "@/components/RequireAuth";
 import {
   Button,
   ErrorBlock,
@@ -37,7 +38,7 @@ interface CaseDetail {
   }[];
 }
 
-export default function SupportDetailPage() {
+function SupportDetailContent() {
   const { t, i18n } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user } = useAuth();
@@ -216,5 +217,13 @@ export default function SupportDetailPage() {
         ) : null}
       </Surface>
     </ScrollView>
+  );
+}
+
+export default function SupportDetailPage() {
+  return (
+    <RequireAuth>
+      <SupportDetailContent />
+    </RequireAuth>
   );
 }

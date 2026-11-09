@@ -1,10 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, router, useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { SeatMap } from "@/components/SeatMap";
+import { RequireAuth } from "@/components/RequireAuth";
 import {
   Button,
   ErrorBlock,
@@ -51,7 +52,7 @@ function toNotice(error: unknown, fallbackKey: string): CheckoutNotice {
   return { key: fallbackKey };
 }
 
-export default function CheckoutPage() {
+function CheckoutContent() {
   const { t, i18n } = useTranslation();
   const {
     eventId,
@@ -189,21 +190,8 @@ export default function CheckoutPage() {
     },
   });
 
-  if (!user) {
-    return (
-      <Surface className="mx-auto mt-8 w-full max-w-xl items-start gap-5 p-7">
-        <Text className="text-3xl font-black text-ink">
-          {t("common.signIn")}
-        </Text>
-        <Text className="text-muted">{t("ui.protectedTicketsHelp")}</Text>
-        <Link href="/login" asChild>
-          <Pressable className="min-h-12 justify-center rounded-2xl bg-brand px-6">
-            <Text className="font-bold text-white">{t("common.signIn")}</Text>
-          </Pressable>
-        </Link>
-      </Surface>
-    );
-  }
+  // RequireAuth renders the signed-out state before this mounts.
+  if (!user) return null;
   if (eventQuery.isLoading || restoredQuery.isLoading) return <LoadingBlock />;
   if (eventQuery.error || !event)
     return (
@@ -429,5 +417,17 @@ export default function CheckoutPage() {
         </Surface>
       </View>
     </ScrollView>
+  );
+}
+
+export default function CheckoutPage() {
+  const { t } = useTranslation();
+  return (
+    <RequireAuth
+      title={t("common.signIn")}
+      message={t("ui.protectedTicketsHelp")}
+    >
+      <CheckoutContent />
+    </RequireAuth>
   );
 }

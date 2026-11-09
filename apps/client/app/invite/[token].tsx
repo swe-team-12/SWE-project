@@ -1,14 +1,15 @@
 import { useMutation } from "@tanstack/react-query";
-import { Link, router, useLocalSearchParams } from "expo-router";
-import { Pressable, Text } from "react-native";
+import { router, useLocalSearchParams } from "expo-router";
+import { Text } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { RequireAuth } from "@/components/RequireAuth";
 import { Button, ErrorBlock, Surface } from "@/components/ui";
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/providers/AuthProvider";
 import type { EventItem } from "@/types";
 
-export default function InvitationPage() {
+function InvitationContent() {
   const { t } = useTranslation();
   const { token } = useLocalSearchParams<{ token: string }>();
   const { user } = useAuth();
@@ -18,21 +19,8 @@ export default function InvitationPage() {
     onSuccess: (event) =>
       router.replace({ pathname: "/events/[id]", params: { id: event.id } }),
   });
-  if (!user) {
-    return (
-      <Surface className="mx-auto mt-8 max-w-xl gap-4">
-        <Text className="text-3xl font-black text-ink">
-          {t("ui.privateInvitation")}
-        </Text>
-        <Text className="text-muted">{t("ui.invitationHelp")}</Text>
-        <Link href="/login" asChild>
-          <Pressable className="min-h-12 items-center justify-center rounded-2xl bg-brand">
-            <Text className="font-bold text-white">{t("common.signIn")}</Text>
-          </Pressable>
-        </Link>
-      </Surface>
-    );
-  }
+  // RequireAuth renders the signed-out state before this mounts.
+  if (!user) return null;
   return (
     <Surface className="mx-auto mt-8 max-w-xl gap-4">
       <Text className="text-3xl font-black text-ink">
@@ -48,5 +36,17 @@ export default function InvitationPage() {
         <ErrorBlock message={(accept.error as Error).message} />
       ) : null}
     </Surface>
+  );
+}
+
+export default function InvitationPage() {
+  const { t } = useTranslation();
+  return (
+    <RequireAuth
+      title={t("ui.privateInvitation")}
+      message={t("ui.invitationHelp")}
+    >
+      <InvitationContent />
+    </RequireAuth>
   );
 }
