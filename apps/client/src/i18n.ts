@@ -252,6 +252,8 @@ const en = {
     subject: "Subject",
     message: "Message",
     submitCase: "Submit support case",
+    supportTextRequired:
+      "Enter a subject (at least 3 characters) and a message.",
     yourCases: "Your cases",
     noCases: "No support cases yet.",
     staffStatus: "Staff status",
@@ -628,6 +630,8 @@ const ru = {
     subject: "Тема",
     message: "Сообщение",
     submitCase: "Отправить обращение",
+    supportTextRequired:
+      "Введите тему (не менее 3 символов) и сообщение.",
     yourCases: "Ваши обращения",
     noCases: "Обращений пока нет.",
     staffStatus: "Статус для команды",
@@ -1005,6 +1009,8 @@ const kk = {
     subject: "Тақырып",
     message: "Хабарлама",
     submitCase: "Қолдау өтінішін жіберу",
+    supportTextRequired:
+      "Тақырыпты (кемінде 3 таңба) және хабарламаны енгізіңіз.",
     yourCases: "Сіздің өтініштеріңіз",
     noCases: "Қолдау өтініші әлі жоқ.",
     staffStatus: "Команда күйі",

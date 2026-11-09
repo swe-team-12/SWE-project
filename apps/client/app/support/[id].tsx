@@ -43,6 +43,7 @@ export default function SupportDetailPage() {
   const { user } = useAuth();
   const client = useQueryClient();
   const [body, setBody] = useState("");
+  const trimmedBody = body.trim();
   const [attachment, setAttachment] =
     useState<DocumentPicker.DocumentPickerAsset>();
   const query = useQuery({
@@ -71,7 +72,7 @@ export default function SupportDetailPage() {
     mutationFn: async () => {
       const message = await apiFetch<{ id: string }>(
         `/support/cases/${id}/messages`,
-        { method: "POST", body: JSON.stringify({ body }) },
+        { method: "POST", body: JSON.stringify({ body: trimmedBody }) },
       );
       if (attachment) {
         const form = await fileForm(attachment);
@@ -206,9 +207,11 @@ export default function SupportDetailPage() {
           />
           <Button
             label={t("ui.sendReply")}
-            onPress={() => send.mutate()}
+            onPress={() => {
+              if (trimmedBody) send.mutate();
+            }}
             loading={send.isPending}
-            disabled={!body}
+            disabled={!trimmedBody}
           />
         </View>
         {send.error ? (
