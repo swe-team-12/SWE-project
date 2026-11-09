@@ -1,11 +1,12 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Link, router } from "expo-router";
+import { type Href, Link, router, useLocalSearchParams } from "expo-router";
 import { Controller, useForm } from "react-hook-form";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 
 import { Button, Field, Surface } from "@/components/ui";
+import { safeRedirectPath } from "@/lib/loginRedirect";
 import { useAuth } from "@/providers/AuthProvider";
 
 const schema = z.object({
@@ -18,6 +19,8 @@ type FormData = z.infer<typeof schema>;
 export default function LoginPage() {
   const { t } = useTranslation();
   const { login } = useAuth();
+  const params = useLocalSearchParams<{ redirect?: string }>();
+  const redirect = safeRedirectPath(params.redirect);
   const { control, handleSubmit, setError, formState } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: { email: "", password: "" },
@@ -25,7 +28,7 @@ export default function LoginPage() {
   const submit = handleSubmit(async (values) => {
     try {
       await login(values.email, values.password);
-      router.replace("/");
+      router.replace((redirect ?? "/") as Href);
     } catch (error) {
       setError("root", {
         message: error instanceof Error ? error.message : "Sign-in failed",

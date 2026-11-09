@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { RequireAuth } from "@/components/RequireAuth";
 import {
   Button,
   ErrorBlock,
@@ -50,7 +51,7 @@ interface ScanResult {
   message: string;
 }
 
-export default function ScannerPage() {
+function ScannerContent() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const client = useQueryClient();
@@ -226,7 +227,8 @@ export default function ScannerPage() {
     lastScan.current = { value: data, at: now };
     scan.mutate(data);
   };
-  if (!user) return <ErrorBlock message={t("ui.noAssignedEvents")} />;
+  // RequireAuth renders the signed-out state before this mounts.
+  if (!user) return null;
   return (
     <ScrollView contentContainerClassName="gap-6 pb-16">
       <View className="flex-row flex-wrap items-end justify-between gap-4">
@@ -411,5 +413,13 @@ export default function ScannerPage() {
         </View>
       ) : null}
     </ScrollView>
+  );
+}
+
+export default function ScannerPage() {
+  return (
+    <RequireAuth>
+      <ScannerContent />
+    </RequireAuth>
   );
 }

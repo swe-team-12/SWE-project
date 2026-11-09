@@ -3,6 +3,7 @@ import { useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { RequireAuth } from "@/components/RequireAuth";
 import {
   Button,
   ErrorBlock,
@@ -59,7 +60,7 @@ async function downloadReport() {
   );
 }
 
-export default function AdminPage() {
+function AdminContent() {
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const [search, setSearch] = useState("");
@@ -334,5 +335,13 @@ export default function AdminPage() {
         </Surface>
       </View>
     </ScrollView>
+  );
+}
+
+export default function AdminPage() {
+  return (
+    <RequireAuth>
+      <AdminContent />
+    </RequireAuth>
   );
 }

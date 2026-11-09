@@ -3,6 +3,7 @@ import { Link } from "expo-router";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { RequireAuth } from "@/components/RequireAuth";
 import { ErrorBlock, LoadingBlock, Surface } from "@/components/ui";
 import { apiFetch } from "@/lib/api";
 import { notificationHref } from "@/lib/notificationHref";
@@ -27,7 +28,7 @@ interface NotificationItem {
   created_at: string;
 }
 
-export default function NotificationsPage() {
+function NotificationsContent() {
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -43,7 +44,8 @@ export default function NotificationsPage() {
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ["notifications"] }),
   });
-  if (!user) return <ErrorBlock message={t("ui.signInHelp")} />;
+  // RequireAuth renders the signed-out state before this mounts.
+  if (!user) return null;
   if (query.isLoading) return <LoadingBlock />;
   if (query.error)
     return <ErrorBlock message={(query.error as Error).message} />;
@@ -111,5 +113,13 @@ export default function NotificationsPage() {
         </Surface>
       ) : null}
     </ScrollView>
+  );
+}
+
+export default function NotificationsPage() {
+  return (
+    <RequireAuth>
+      <NotificationsContent />
+    </RequireAuth>
   );
 }

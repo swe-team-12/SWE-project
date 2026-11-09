@@ -1,8 +1,8 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Link } from "expo-router";
-import { Image, Pressable, ScrollView, Text, View } from "react-native";
+import { Image, ScrollView, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
+import { RequireAuth } from "@/components/RequireAuth";
 import {
   Button,
   ErrorBlock,
@@ -25,7 +25,7 @@ function downloadPdf(ticket: Ticket) {
   );
 }
 
-export default function TicketsPage() {
+function TicketsContent() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const query = useQuery({
@@ -34,21 +34,8 @@ export default function TicketsPage() {
     enabled: !!user,
   });
   const download = useMutation({ mutationFn: downloadPdf });
-  if (!user) {
-    return (
-      <Surface className="mx-auto mt-8 max-w-xl gap-4">
-        <Text className="text-3xl font-black text-ink">
-          {t("ui.protectedTickets")}
-        </Text>
-        <Text className="text-muted">{t("ui.protectedTicketsHelp")}</Text>
-        <Link href="/login" asChild>
-          <Pressable className="min-h-12 items-center justify-center rounded-2xl bg-brand">
-            <Text className="font-bold text-white">{t("common.signIn")}</Text>
-          </Pressable>
-        </Link>
-      </Surface>
-    );
-  }
+  // RequireAuth renders the signed-out state before this mounts.
+  if (!user) return null;
   return (
     <ScrollView contentContainerClassName="gap-6 pb-16">
       <View>
@@ -118,5 +105,17 @@ export default function TicketsPage() {
         </Text>
       ) : null}
     </ScrollView>
+  );
+}
+
+export default function TicketsPage() {
+  const { t } = useTranslation();
+  return (
+    <RequireAuth
+      title={t("ui.protectedTickets")}
+      message={t("ui.protectedTicketsHelp")}
+    >
+      <TicketsContent />
+    </RequireAuth>
   );
 }
