@@ -138,3 +138,20 @@ export async function bootstrapSession(): Promise<AuthTokens | null> {
 export function currentAccessToken(): string | null {
   return accessToken;
 }
+
+/**
+ * Fetches a JSON array from a paginated list endpoint together with the total
+ * number of matches the server reports in the X-Total-Count header.
+ */
+export async function apiFetchList<T>(
+  path: string,
+  options: ApiRequestOptions = {},
+): Promise<{ items: T[]; total: number | null }> {
+  const response = await apiRequest(path, options);
+  const header = response.headers.get("X-Total-Count");
+  const total = header === null ? null : Number(header);
+  return {
+    items: (await response.json()) as T[],
+    total: total !== null && Number.isFinite(total) ? total : null,
+  };
+}

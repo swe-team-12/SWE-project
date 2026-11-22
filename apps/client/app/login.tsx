@@ -1,11 +1,15 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { type Href, Link, router, useLocalSearchParams } from "expo-router";
+import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, Text } from "react-native";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 
-import { Button, Field, Surface } from "@/components/ui";
+import { ResendVerification } from "@/components/ResendVerification";
+import { AuthCard } from "@/components/design/AuthCard";
+import { Icon, palette } from "@/components/icons";
+import { Button, Field, Notice } from "@/components/ui";
 import { safeRedirectPath } from "@/lib/loginRedirect";
 import { useAuth } from "@/providers/AuthProvider";
 
@@ -21,6 +25,7 @@ export default function LoginPage() {
   const { login } = useAuth();
   const params = useLocalSearchParams<{ redirect?: string }>();
   const redirect = safeRedirectPath(params.redirect);
+  const [resendOpen, setResendOpen] = useState(false);
   const { control, handleSubmit, setError, formState } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: { email: "", password: "" },
@@ -31,19 +36,42 @@ export default function LoginPage() {
       router.replace((redirect ?? "/") as Href);
     } catch (error) {
       setError("root", {
-        message: error instanceof Error ? error.message : "Sign-in failed",
+        message:
+          error instanceof Error && error.message
+            ? error.message
+            : t("attendee.auth.signInFailed"),
       });
     }
   });
   return (
-    <ScrollView contentContainerClassName="items-center py-8">
-      <Surface className="w-full max-w-lg gap-6 p-7">
-        <View className="gap-2">
-          <Text className="text-3xl font-black text-ink">
-            {t("common.signIn")}
-          </Text>
-          <Text className="text-muted">{t("ui.signInHelp")}</Text>
-        </View>
+    <AuthCard
+      icon="lock"
+      title={t("common.signIn")}
+      subtitle={t("ui.signInHelp")}
+      footer={
+        <>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityState={{ expanded: resendOpen }}
+            onPress={() => setResendOpen((value) => !value)}
+            className="min-h-11 flex-row items-center justify-center gap-2 rounded-2xl active:opacity-70"
+          >
+            <Icon name="mail" size={16} color={palette.brand} />
+            <Text className="text-center font-bold text-brand">
+              {t("attendee.auth.noVerificationEmail")}
+            </Text>
+          </Pressable>
+          {resendOpen ? (
+            <>
+              <Text className="text-sm text-muted">
+                {t("attendee.auth.resendHelp")}
+              </Text>
+              <ResendVerification />
+            </>
+          ) : null}
+        </>
+      }
+    >
         <Controller
           control={control}
           name="email"
@@ -53,10 +81,11 @@ export default function LoginPage() {
               value={field.value}
               onChangeText={field.onChange}
               onBlur={field.onBlur}
-              error={fieldState.error?.message}
+              error={fieldState.error ? t("ui.invalidEmail") : undefined}
               autoCapitalize="none"
               keyboardType="email-address"
               autoComplete="email"
+              icon="mail"
             />
           )}
         />
@@ -69,37 +98,44 @@ export default function LoginPage() {
               value={field.value}
               onChangeText={field.onChange}
               onBlur={field.onBlur}
-              error={fieldState.error?.message}
+              error={
+                fieldState.error
+                  ? t("attendee.auth.passwordTooShort")
+                  : undefined
+              }
               secureTextEntry
               autoComplete="current-password"
+              icon="lock"
             />
           )}
         />
         {formState.errors.root ? (
-          <Text className="rounded-xl bg-red-50 p-3 text-danger">
+          <Notice tone="danger" role="alert">
             {formState.errors.root.message}
-          </Text>
+          </Notice>
         ) : null}
         <Button
           label={t("common.signIn")}
           onPress={() => void submit()}
           loading={formState.isSubmitting}
+          size="lg"
+          fullWidth
         />
         <Link href="/forgot-password" asChild>
-          <Pressable className="min-h-11 items-center justify-center">
-            <Text className="font-bold text-brand">
+          <Pressable className="min-h-11 items-center justify-center rounded-2xl active:opacity-70">
+            <Text className="font-bold text-brand underline">
               {t("ui.forgotPassword")}
             </Text>
           </Pressable>
         </Link>
         <Link href="/register" asChild>
-          <Pressable className="min-h-11 items-center justify-center">
-            <Text className="font-bold text-brand">
+          <Pressable className="min-h-12 flex-row items-center justify-center gap-2 rounded-2xl border border-line bg-canvas px-5 active:opacity-80">
+            <Icon name="user" size={18} />
+            <Text className="font-bold text-ink">
               {t("common.createAccount")}
             </Text>
           </Pressable>
         </Link>
-      </Surface>
-    </ScrollView>
+    </AuthCard>
   );
 }

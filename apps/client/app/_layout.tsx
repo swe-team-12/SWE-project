@@ -22,9 +22,15 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <StatusBar style="light" />
+          <StatusBar style="dark" />
           <AppShell>
-            <Stack screenOptions={{ headerShown: false }} />
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                // Let the shell's green canvas show behind every screen.
+                contentStyle: { backgroundColor: "transparent" },
+              }}
+            />
           </AppShell>
         </AuthProvider>
       </QueryClientProvider>

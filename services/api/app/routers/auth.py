@@ -2,6 +2,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
 from fastapi import APIRouter, Cookie, Request, Response
+from pydantic import BaseModel
 from sqlalchemy import select
 
 from app.config import settings
@@ -155,6 +156,69 @@ async def verify_email(payload: VerifyEmailRequest, db: DbSession) -> User:
     return user
 
 
+RESEND_VERIFICATION_COOLDOWN = timedelta(seconds=60)
+
+
+@router.post("/verify-email/resend")
+async def resend_verification_email(payload: PasswordResetRequest, db: DbSession) -> dict:
+    """Queue a fresh verification link. The response never reveals whether the account exists."""
+    result: dict = {
+        "message": "If the account exists and is not verified, a verification link has been queued."
+    }
+    user = await db.scalar(select(User).where(User.email == payload.email.lower()))
+    if user is None or user.is_email_verified or user.is_suspended:
+        return result
+    now = datetime.now(UTC)
+    latest = await db.scalar(
+        select(ActionToken)
+        .where(ActionToken.user_id == user.id, ActionToken.purpose == "verify_email")
+        .order_by(ActionToken.created_at.desc())
+        .limit(1)
+    )
+    if latest is not None and latest.created_at > now - RESEND_VERIFICATION_COOLDOWN:
+        # Silently throttled per account; the per-address limit lives in the middleware.
+        return result
+    outstanding = await db.scalars(
+        select(ActionToken).where(
+            ActionToken.user_id == user.id,
+            ActionToken.purpose == "verify_email",
+            ActionToken.consumed_at.is_(None),
+        )
+    )
+    for token in outstanding:
+        token.consumed_at = now
+    raw_token = opaque_token()
+    db.add(
+        ActionToken(
+            user_id=user.id,
+            purpose="verify_email",
+            token_hash=token_hash(raw_token),
+            expires_at=now + timedelta(hours=24),
+        )
+    )
+    await record_audit(
+        db,
+        action="account.verification_resent",
+        entity_type="user",
+        entity_id=user.id,
+        actor_user_id=user.id,
+        description="Verification email re-sent.",
+    )
+    await db.commit()
+    enqueue_email(
+        user.email,
+        "Verify your BiletFlow account",
+        (
+            "Verify your BiletFlow email using this link:\n\n"
+            f"{settings.public_web_base_url}/verify-email?token={raw_token}\n\n"
+            "This link expires in 24 hours. Earlier links no longer work."
+        ),
+    )
+    if not settings.is_production:
+        result["development_verification_token"] = raw_token
+    return result
+
+
 @router.post("/login", response_model=AuthTokens)
 async def login(
     payload: LoginRequest, request: Request, response: Response, db: DbSession
@@ -276,17 +340,56 @@ async def confirm_password_reset(payload: PasswordResetConfirm, db: DbSession) -
     return {"message": "Password updated. Sign in again."}
 
 
+def serialize_organizer_profile(profile: OrganizerProfile) -> dict:
+    return {
+        "id": str(profile.id),
+        "user_id": str(profile.user_id),
+        "organization_name": profile.organization_name,
+        "contact_email": profile.contact_email,
+        "contact_phone": profile.contact_phone,
+        "payout_account_label": profile.payout_account_label,
+        "identity_verified": profile.identity_verified,
+        "payout_verified": profile.payout_verified,
+        "verification_mode": "DEMONSTRATION_ONLY",
+        "updated_at": profile.updated_at,
+    }
+
+
+@router.get("/organizer-profile")
+async def get_organizer_profile(user: CurrentUser, db: DbSession) -> dict:
+    profile = await db.scalar(select(OrganizerProfile).where(OrganizerProfile.user_id == user.id))
+    if profile is None:
+        raise AppError(
+            404,
+            "organizer_profile_not_found",
+            "Profile not found",
+            "Create an organizer profile first.",
+        )
+    return serialize_organizer_profile(profile)
+
+
 @router.put("/organizer-profile")
 async def upsert_organizer_profile(
     payload: OrganizerProfileRequest, user: CurrentUser, db: DbSession
 ) -> dict:
     profile = await db.scalar(select(OrganizerProfile).where(OrganizerProfile.user_id == user.id))
+    changes = payload.model_dump()
+    label_supplied = "payout_account_label" in payload.model_fields_set
+    new_label = (changes.pop("payout_account_label") or "").strip() or None
+    payout_changed = False
     if profile is None:
-        profile = OrganizerProfile(user_id=user.id, **payload.model_dump())
+        profile = OrganizerProfile(user_id=user.id, payout_account_label=new_label, **changes)
         db.add(profile)
+        await db.flush()
     else:
-        for key, value in payload.model_dump().items():
+        for key, value in changes.items():
             setattr(profile, key, value)
+        # A request that omits the payout label keeps the stored one. Verification is
+        # only reset when the payout account itself changes.
+        if label_supplied and new_label != profile.payout_account_label:
+            profile.payout_account_label = new_label
+            payout_changed = profile.payout_verified
+            profile.payout_verified = False
     if UserRole.ORGANIZER.value not in user.roles:
         user.roles = [*user.roles, UserRole.ORGANIZER.value]
     await record_audit(
@@ -296,11 +399,64 @@ async def upsert_organizer_profile(
         entity_id=profile.id,
         actor_user_id=user.id,
         description="Organizer profile created or updated.",
+        data={"payout_verification_reset": payout_changed},
     )
     await db.commit()
+    return {**serialize_organizer_profile(profile), "payout_verification_reset": payout_changed}
+
+
+class VerificationSimulation(BaseModel):
+    identity: bool = True
+    payout: bool = True
+
+
+@router.post("/organizer-profile/verification/simulate")
+async def simulate_organizer_verification(
+    payload: VerificationSimulation, user: CurrentUser, db: DbSession
+) -> dict:
+    """Demonstration stand-in for identity and payout checks. No real provider is called."""
+    profile = await db.scalar(select(OrganizerProfile).where(OrganizerProfile.user_id == user.id))
+    if profile is None:
+        raise AppError(
+            404,
+            "organizer_profile_not_found",
+            "Profile not found",
+            "Create an organizer profile first.",
+        )
+    if not payload.identity and not payload.payout:
+        raise AppError(
+            422, "verification_target_required", "Nothing to verify", "Choose identity or payout."
+        )
+    if not user.is_email_verified:
+        raise AppError(409, "email_not_verified", "Verify email", "Email verification is required.")
+    if payload.payout and not (profile.payout_account_label or "").strip():
+        raise AppError(
+            409,
+            "payout_account_required",
+            "Payout account required",
+            "Add the demonstrative payout account to the organizer profile.",
+        )
+    completed: list[str] = []
+    if payload.identity and not profile.identity_verified:
+        profile.identity_verified = True
+        completed.append("identity")
+    if payload.payout and not profile.payout_verified:
+        profile.payout_verified = True
+        completed.append("payout")
+    if completed:
+        await record_audit(
+            db,
+            action="organizer.verification_simulated",
+            entity_type="organizer_profile",
+            entity_id=profile.id,
+            actor_user_id=user.id,
+            description=f"Completed simulated verification: {', '.join(completed)}.",
+            data={"completed": completed, "simulated": True},
+        )
+        await db.commit()
     return {
-        "id": str(profile.id),
-        "organization_name": profile.organization_name,
-        "identity_verified": profile.identity_verified,
-        "payout_verified": profile.payout_verified,
+        **serialize_organizer_profile(profile),
+        "completed": completed,
+        "simulated": True,
+        "mode": "DEMONSTRATION_ONLY",
     }

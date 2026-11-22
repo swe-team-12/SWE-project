@@ -56,10 +56,24 @@ async function encryptionKey(): Promise<Uint8Array> {
  * that expo-sqlite relies on for the web.
  */
 export class OfflineStorageUnavailableError extends Error {
+  // Screens show a translated notice; the message is only a log identifier.
+  readonly code = "offline_storage_unavailable";
   constructor(cause?: unknown) {
-    super("Offline storage is unavailable in this browser mode.");
+    super("offline_storage_unavailable");
     this.name = "OfflineStorageUnavailableError";
     this.cause = cause;
+  }
+}
+
+/**
+ * Raised when a downloaded bundle is not signed by the trusted admission key.
+ * Screens translate it by type; nothing is stored in that case.
+ */
+export class OfflineBundleInvalidError extends Error {
+  readonly code = "offline_bundle_invalid";
+  constructor() {
+    super("offline_bundle_invalid");
+    this.name = "OfflineBundleInvalidError";
   }
 }
 
@@ -80,6 +94,10 @@ async function openDatabase(): Promise<SQLite.SQLiteDatabase> {
           qr_token TEXT NOT NULL,
           captured_at TEXT NOT NULL,
           sync_status TEXT NOT NULL DEFAULT 'queued'
+        );
+        CREATE TABLE IF NOT EXISTS sync_meta (
+          key TEXT PRIMARY KEY NOT NULL,
+          value TEXT NOT NULL
         );
       `);
     return instance;
@@ -190,7 +208,7 @@ export async function saveOfflineBundle(
   trustedPublicKey: string,
 ): Promise<void> {
   if (!verifyOfflineBundle(bundle, trustedPublicKey)) {
-    throw new Error("The offline validation bundle signature is invalid.");
+    throw new OfflineBundleInvalidError();
   }
   const key = await encryptionKey();
   const nonce = Crypto.getRandomBytes(12);
@@ -264,12 +282,108 @@ export async function queuedScanCount(eventId?: string): Promise<number> {
   return row?.count ?? 0;
 }
 
-export async function syncOfflineScans(): Promise<{
+export type OfflineScanOutcome =
+  | "valid"
+  | "invalid"
+  | "cancelled"
+  | "refunded"
+  | "already_used"
+  | "wrong_event"
+  | "conflict";
+
+/** One queued scan as the server resolved it during synchronization. */
+export interface OfflineSyncItem {
+  operation_id: string;
+  outcome: OfflineScanOutcome;
+  ticket_id?: string | null;
+  ticket_code?: string | null;
+  attendee_name?: string | null;
+  ticket_status?: string | null;
+  ticket_type_name?: string | null;
+  seat_label?: string | null;
+  checked_in_at?: string | null;
+  code?: string | null;
+}
+
+export interface OfflineSyncResult {
   accepted: number;
   conflicts: number;
-}> {
+  rejected: number;
+  results: OfflineSyncItem[];
+}
+
+export interface OfflineSyncSummary {
+  at: string;
+  accepted: number;
+  conflicts: number;
+  rejected: number;
+}
+
+const EMPTY_SYNC: OfflineSyncResult = {
+  accepted: 0,
+  conflicts: 0,
+  rejected: 0,
+  results: [],
+};
+const CONFLICT_OUTCOMES = new Set(["conflict", "already_used"]);
+
+/**
+ * Counts results by outcome the way the server does: `valid` is accepted,
+ * `conflict` / `already_used` are conflicts, everything else was rejected.
+ */
+export function countSyncOutcomes(results: { outcome: string }[]): {
+  accepted: number;
+  conflicts: number;
+  rejected: number;
+} {
+  let accepted = 0;
+  let conflicts = 0;
+  let rejected = 0;
+  for (const item of results) {
+    if (item.outcome === "valid") accepted += 1;
+    else if (CONFLICT_OUTCOMES.has(item.outcome)) conflicts += 1;
+    else rejected += 1;
+  }
+  return { accepted, conflicts, rejected };
+}
+
+/** Results that need the scanner's attention after a synchronization. */
+export function unresolvedSyncItems(
+  results: OfflineSyncItem[],
+): OfflineSyncItem[] {
+  return results.filter((item) => item.outcome !== "valid");
+}
+
+function lastSyncKey(eventId?: string): string {
+  return eventId ? `last_sync:${eventId}` : "last_sync";
+}
+
+/** When this device last synchronized queued scans, and how that went. */
+export async function lastOfflineSync(): Promise<OfflineSyncSummary | null> {
   const instance = await optionalDb();
-  if (!instance) return { accepted: 0, conflicts: 0 };
+  if (!instance) return null;
+  const row = await instance.getFirstAsync<{ value: string }>(
+    "SELECT value FROM sync_meta WHERE key = ?",
+    lastSyncKey(),
+  );
+  if (!row) return null;
+  try {
+    const parsed = JSON.parse(row.value) as Partial<OfflineSyncSummary>;
+    if (typeof parsed.at !== "string") return null;
+    return {
+      at: parsed.at,
+      accepted: Number(parsed.accepted) || 0,
+      conflicts: Number(parsed.conflicts) || 0,
+      rejected: Number(parsed.rejected) || 0,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export async function syncOfflineScans(): Promise<OfflineSyncResult> {
+  const instance = await optionalDb();
+  if (!instance) return EMPTY_SYNC;
   const rows = await instance.getAllAsync<{
     operation_id: string;
     event_id: string;
@@ -278,30 +392,51 @@ export async function syncOfflineScans(): Promise<{
   }>(
     "SELECT operation_id, event_id, qr_token, captured_at FROM scan_queue WHERE sync_status='queued' ORDER BY captured_at",
   );
-  if (!rows.length) return { accepted: 0, conflicts: 0 };
-  const result = await apiFetch<{
-    accepted: number;
-    conflicts: number;
-    results: { operation_id: string; outcome: string }[];
-  }>("/scanner/sync", {
-    method: "POST",
-    body: JSON.stringify({
-      operations: rows.map((row) => ({
-        operation_id: row.operation_id,
-        event_id: row.event_id,
-        qr_token: row.qr_token,
-        captured_at: row.captured_at,
-        was_offline: true,
-      })),
-    }),
-  });
+  if (!rows.length) return EMPTY_SYNC;
+  const response = await apiFetch<Partial<OfflineSyncResult>>(
+    "/scanner/sync",
+    {
+      method: "POST",
+      body: JSON.stringify({
+        operations: rows.map((row) => ({
+          operation_id: row.operation_id,
+          event_id: row.event_id,
+          qr_token: row.qr_token,
+          captured_at: row.captured_at,
+          was_offline: true,
+        })),
+      }),
+    },
+  );
+  const results = response.results ?? [];
+  const counted = countSyncOutcomes(results);
+  const result: OfflineSyncResult = {
+    accepted: response.accepted ?? counted.accepted,
+    conflicts: response.conflicts ?? counted.conflicts,
+    rejected: response.rejected ?? counted.rejected,
+    results,
+  };
+  const summary: OfflineSyncSummary = {
+    at: new Date().toISOString(),
+    accepted: result.accepted,
+    conflicts: result.conflicts,
+    rejected: result.rejected,
+  };
+  // Only operations the server answered leave the queue; anything it did not
+  // report stays queued for the next attempt (operation ids are idempotent).
   await instance.withTransactionAsync(async () => {
-    for (const item of result.results) {
+    for (const item of results) {
       await instance.runAsync(
         "DELETE FROM scan_queue WHERE operation_id=?",
         item.operation_id,
       );
     }
+    await instance.runAsync(
+      `INSERT INTO sync_meta(key, value) VALUES (?, ?)
+       ON CONFLICT(key) DO UPDATE SET value=excluded.value`,
+      lastSyncKey(),
+      JSON.stringify(summary),
+    );
   });
   return result;
 }

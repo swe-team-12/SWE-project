@@ -1,11 +1,64 @@
 import uuid
 
-from sqlalchemy import select
+from sqlalchemy import String, cast, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.enums import EventStatus, EventVisibility, StaffRole, UserRole
+from app.config import settings
+from app.enums import EventStatus, EventVisibility, OrderStatus, StaffRole, UserRole
 from app.errors import AppError
-from app.models import Event, EventInvitation, StaffAssignment, SupportCase, User
+from app.models import (
+    Event,
+    EventInvitation,
+    Order,
+    StaffAssignment,
+    SupportCase,
+    SystemSetting,
+    User,
+)
+
+ACTIVATION_FEE_KEY = "activation_fee_tiyin"
+
+
+def is_platform_admin(user: User | None) -> bool:
+    return bool(user and UserRole.PLATFORM_ADMIN.value in (user.roles or []))
+
+
+async def platform_admins(db: AsyncSession) -> list[User]:
+    """Active platform administrators (roles are stored as a JSON list)."""
+    candidates = (
+        await db.scalars(
+            select(User).where(
+                cast(User.roles, String).like(f"%{UserRole.PLATFORM_ADMIN.value}%"),
+                User.is_suspended.is_(False),
+            )
+        )
+    ).all()
+    return [user for user in candidates if is_platform_admin(user)]
+
+
+async def platform_admin_ids(db: AsyncSession) -> set[uuid.UUID]:
+    return {user.id for user in await platform_admins(db)}
+
+
+async def ticket_holder_ids(db: AsyncSession, event_id: uuid.UUID) -> set[uuid.UUID]:
+    """Users holding a paid or free order for the event."""
+    result = await db.scalars(
+        select(Order.user_id)
+        .where(
+            Order.event_id == event_id,
+            Order.status.in_([OrderStatus.PAID, OrderStatus.FREE]),
+        )
+        .distinct()
+    )
+    return set(result.all())
+
+
+async def activation_fee_setting(db: AsyncSession) -> tuple[int, SystemSetting | None]:
+    """Return the effective activation fee and the stored setting, if one was configured."""
+    setting = await db.scalar(select(SystemSetting).where(SystemSetting.key == ACTIVATION_FEE_KEY))
+    if setting is not None and "amount_tiyin" in (setting.value or {}):
+        return int(setting.value["amount_tiyin"]), setting
+    return settings.activation_fee_tiyin, None
 
 
 async def get_event_or_404(db: AsyncSession, event_id: uuid.UUID) -> Event:
@@ -92,3 +145,18 @@ async def require_support_access(db: AsyncSession, case: SupportCase, user: User
         "Permission denied",
         "You cannot access this support case.",
     )
+
+
+def event_change_data(
+    event: Event, change: str, reason: str | None = None, **extra: object
+) -> dict[str, object]:
+    """Machine-readable notification payload so clients can localise event changes."""
+    data: dict[str, object] = {
+        "event_id": str(event.id),
+        "event_title": event.title,
+        "event_status": event.status.value if event.status else None,
+        "change": change,
+        "reason": reason,
+    }
+    data.update(extra)
+    return data

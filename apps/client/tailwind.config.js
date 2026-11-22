@@ -6,22 +6,27 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        ink: "#102A43",
-        muted: "#627D98",
-        canvas: "#F4F8FB",
+        ink: "#0C1F17",
+        night: "#07140E",
+        muted: "#5C6F65",
+        canvas: "#EDF3EE",
         panel: "#FFFFFF",
-        brand: "#007C83",
-        aqua: "#00A7A5",
-        line: "#D9E2EC",
-        success: "#16865C",
-        warning: "#B76E00",
-        danger: "#C43D4B"
+        brand: "#0F7B45",
+        aqua: "#17995A",
+        mint: "#6BE892",
+        mintsoft: "#DDF6E4",
+        line: "#DBE5DE",
+        success: "#0F7B45",
+        warning: "#A15C00",
+        danger: "#C2364A",
+        teal: { 50: "#EAF6EE", 100: "#D6EFDD", 200: "#B4E2C2" }
       },
       fontFamily: {
-        sans: ["System"]
+        sans: ["Onest", "System"]
       },
       boxShadow: {
-        panel: "0 12px 32px rgba(16, 42, 67, 0.08)"
+        panel: "0 14px 36px rgba(12, 31, 23, 0.07)",
+        float: "0 18px 44px rgba(12, 31, 23, 0.18)"
       }
     }
   },

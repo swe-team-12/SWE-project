@@ -4,6 +4,7 @@ import {
   clearCheckoutDraft,
   isRestorableSeat,
   loadCheckoutDraft,
+  restorablePicks,
   saveCheckoutDraft,
 } from "../checkoutDraft";
 
@@ -78,5 +79,30 @@ describe("checkout draft", () => {
     expect(isRestorableSeat("seat-1", seats)).toBe(true);
     expect(isRestorableSeat("seat-2", seats)).toBe(false);
     expect(isRestorableSeat("missing", seats)).toBe(false);
+  });
+
+  it("keeps only remembered seats that are still available", () => {
+    const seats = [seat("s1", "available"), seat("s2", "held")];
+    expect(
+      restorablePicks(
+        [
+          { seatId: "s1", ticketTypeId: "t" },
+          { seatId: "s2", ticketTypeId: "t" },
+          { seatId: "gone", ticketTypeId: "t" },
+        ],
+        seats,
+      ),
+    ).toEqual([{ seatId: "s1", ticketTypeId: "t" }]);
+  });
+
+  it("remembers quantities and several seats", () => {
+    saveCheckoutDraft("user-1", "event-1", {
+      quantities: { "type-1": 3 },
+      picks: [{ seatId: "s1", ticketTypeId: "type-1" }],
+    });
+    expect(loadCheckoutDraft("user-1", "event-1")).toEqual({
+      quantities: { "type-1": 3 },
+      picks: [{ seatId: "s1", ticketTypeId: "type-1" }],
+    });
   });
 });

@@ -73,9 +73,9 @@ test("selects an assigned seat through both map and accessible list", async ({
 
   const map = page.getByLabel("Interactive Almaty Hall seat map");
   await expect(map).toBeVisible();
-  const availableSeat = map.locator('circle[fill="#FFFFFF"]').first();
+  const availableSeat = map.locator('rect[fill="#FFFFFF"]').first();
   await availableSeat.click();
-  await expect(map.locator('circle[fill="#00A7A5"]')).toHaveCount(1);
+  await expect(map.locator('rect[fill="#0C1F17"]')).toHaveCount(1);
 
   await page.getByRole("button", { name: "Accessible list" }).click();
   const selectedSeat = page.getByRole("checkbox", { checked: true });

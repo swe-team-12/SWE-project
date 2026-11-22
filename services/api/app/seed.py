@@ -111,6 +111,12 @@ async def seed() -> None:
             )
         else:
             profile.contact_email = organizer.email
+            # Paid-sales activation now reads real verification flags, so keep the
+            # demonstration organizer verified on databases seeded before that.
+            profile.identity_verified = True
+            if not profile.payout_account_label:
+                profile.payout_account_label = "Demo payout account"
+            profile.payout_verified = True
         event = await db.scalar(select(Event).where(Event.slug == "almaty-tech-forum-2026"))
         if event is None:
             event = Event(
@@ -304,6 +310,24 @@ async def seed() -> None:
                         properties={"source": "seeded-demo"},
                     )
                 )
+        # Keep the demonstration usable on long-lived databases: once the
+        # seeded event has finished it drops out of the public catalogue, so
+        # roll its schedule and the seeded campaign window forward.
+        now = datetime.now(UTC)
+        if event.ends_at <= now + timedelta(days=1):
+            event.starts_at = now + timedelta(days=14)
+            event.ends_at = now + timedelta(days=14, hours=6)
+            event.registration_opens_at = now - timedelta(days=7)
+            event.registration_closes_at = now + timedelta(days=14)
+            event.calendar_sequence = (event.calendar_sequence or 0) + 1
+        seeded_campaign = await db.scalar(
+            select(Campaign).where(Campaign.event_id == event.id, Campaign.code == "CAMPUS20")
+        )
+        if seeded_campaign is not None and (
+            seeded_campaign.ends_at is None or seeded_campaign.ends_at <= now + timedelta(days=1)
+        ):
+            seeded_campaign.starts_at = now - timedelta(days=1)
+            seeded_campaign.ends_at = now + timedelta(days=10)
         # Reconcile the canonical hall coordinates on every seed run so
         # existing demonstration databases receive layout refinements without
         # replacing seats, orders, or ticket references.

@@ -219,6 +219,11 @@ class TicketTypeOut(ORMModel):
     max_per_order: int
     is_hidden: bool
     price_category: str | None
+    sales_start_at: datetime | None = None
+    sales_end_at: datetime | None = None
+    # Tickets still purchasable (quantity minus sold and live checkout reservations);
+    # filled on single-event reads, null elsewhere.
+    available: int | None = None
 
 
 class EventOut(ORMModel):
@@ -244,6 +249,7 @@ class EventOut(ORMModel):
     refund_policy: str
     paid_sales_active: bool
     paid_sales_suspended: bool
+    cancellation_reason: str | None = None
     ticket_types: list[TicketTypeOut] = Field(default_factory=list)
     lifecycle_group: str | None = None
 
@@ -289,6 +295,15 @@ class CampaignOut(ORMModel):
     is_enabled: bool
     applicable_ticket_type_ids: list[str]
     campaign_url: str | None = None
+    # Derived by the campaign endpoints (absent on older responses).
+    state: str | None = None
+    redemptions: int = 0
+    redemptions_remaining: int | None = None
+    orders: int = 0
+    tickets_sold: int = 0
+    gross_tiyin: int = 0
+    discount_tiyin: int = 0
+    refunded_orders: int = 0
 
 
 class CheckoutLineRequest(BaseModel):
@@ -315,7 +330,8 @@ class ActivationSimulation(BaseModel):
     outcome: Literal["success", "failure", "timeout"] = "success"
     idempotency_key: str = Field(min_length=8, max_length=100)
     terms_accepted: bool
-    organizer_verification_confirmed: bool
+    # Kept for older clients; verification is now read from the organizer profile.
+    organizer_verification_confirmed: bool = False
 
 
 class CheckoutOut(ORMModel):
@@ -335,6 +351,28 @@ class TicketOut(ORMModel):
     event_id: uuid.UUID
     status: TicketStatus
     qr_token: str | None = None
+    # Display context filled in by the ticket endpoints.
+    qr_available: bool = False
+    event_title: str | None = None
+    event_slug: str | None = None
+    event_status: EventStatus | None = None
+    starts_at: datetime | None = None
+    ends_at: datetime | None = None
+    timezone: str | None = None
+    venue_name: str | None = None
+    venue_address: str | None = None
+    city: str | None = None
+    ticket_type_id: uuid.UUID | None = None
+    ticket_type_name: str | None = None
+    attendee_name: str | None = None
+    section: str | None = None
+    row: str | None = None
+    seat_number: str | None = None
+    seat_label: str | None = None
+    order_id: uuid.UUID | None = None
+    order_number: str | None = None
+    checked_in_at: datetime | None = None
+    calendar: dict[str, Any] | None = None
 
 
 class SupportCaseCreate(BaseModel):
@@ -410,4 +448,8 @@ class ScanResult(BaseModel):
     ticket_id: uuid.UUID | None = None
     ticket_code: str | None = None
     attendee_name: str | None = None
+    ticket_status: TicketStatus | None = None
+    ticket_type_name: str | None = None
+    seat_label: str | None = None
+    checked_in_at: datetime | None = None
     message: str

@@ -17,6 +17,7 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
     Uuid,
+    false,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -25,6 +26,8 @@ from app.enums import (
     CheckInAction,
     CheckoutStatus,
     DiscountType,
+    EventReportCategory,
+    EventReportStatus,
     EventStatus,
     EventVisibility,
     NotificationType,
@@ -157,6 +160,9 @@ class Event(UUIDMixin, TimestampMixin, Base):
     activation_paid: Mapped[bool] = mapped_column(Boolean, default=False)
     paid_sales_active: Mapped[bool] = mapped_column(Boolean, default=False)
     paid_sales_suspended: Mapped[bool] = mapped_column(Boolean, default=False)
+    # Moderation reasons recorded by platform administrators (see 0002 migration).
+    suspension_reason: Mapped[str | None] = mapped_column(Text)
+    paid_sales_suspension_reason: Mapped[str | None] = mapped_column(Text)
     cancellation_reason: Mapped[str | None] = mapped_column(Text)
     calendar_sequence: Mapped[int] = mapped_column(Integer, default=0)
 
@@ -425,6 +431,11 @@ class SupportCase(UUIDMixin, TimestampMixin, Base):
     order_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("orders.id"))
     ticket_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("tickets.id"))
     subject: Mapped[str] = mapped_column(String(220))
+    escalated: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default=false(), nullable=False
+    )
+    escalated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    escalated_by_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id"))
 
 
 class SupportMessage(UUIDMixin, TimestampMixin, Base):
@@ -488,6 +499,23 @@ class AuditLog(UUIDMixin, Base):
     )
 
 
+class EventReport(UUIDMixin, TimestampMixin, Base):
+    __tablename__ = "event_reports"
+
+    event_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("events.id", ondelete="CASCADE"), index=True
+    )
+    reporter_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), index=True)
+    category: Mapped[EventReportCategory] = enum_column(EventReportCategory)
+    details: Mapped[str] = mapped_column(Text, default="")
+    status: Mapped[EventReportStatus] = enum_column(
+        EventReportStatus, default=EventReportStatus.OPEN
+    )
+    resolution_note: Mapped[str | None] = mapped_column(Text)
+    resolved_by_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id"))
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
 class SystemSetting(UUIDMixin, TimestampMixin, Base):
     __tablename__ = "system_settings"
 
@@ -502,3 +530,4 @@ Index("ix_orders_event_status", Order.event_id, Order.status)
 Index("ix_tickets_event_status", Ticket.event_id, Ticket.status)
 Index("ix_support_case_event_status", SupportCase.event_id, SupportCase.status)
 Index("ix_audit_event_time", AuditLog.event_id, AuditLog.occurred_at)
+Index("ix_event_reports_status_time", EventReport.status, EventReport.created_at)

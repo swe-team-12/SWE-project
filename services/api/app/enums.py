@@ -109,3 +109,23 @@ class NotificationType(StrEnum):
     PAYOUT_STATUS = "payout_status"
     SUPPORT_MESSAGE = "support_message"
     SUPPORT_STATUS = "support_status"
+    # Values must stay within 20 characters: the column is a varchar sized by the
+    # longest member that existed when the initial schema was created.
+    SUPPORT_ASSIGNED = "support_assigned"
+    EVENT_REPORT = "event_report"
+    ACTIVATION_STATUS = "activation_status"
+
+
+class EventReportCategory(StrEnum):
+    FRAUD = "fraud"
+    MISLEADING_INFORMATION = "misleading_information"
+    INAPPROPRIATE_CONTENT = "inappropriate_content"
+    SAFETY = "safety"
+    SPAM = "spam"
+    OTHER = "other"
+
+
+class EventReportStatus(StrEnum):
+    OPEN = "open"
+    RESOLVED = "resolved"
+    DISMISSED = "dismissed"

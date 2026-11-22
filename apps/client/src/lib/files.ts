@@ -6,6 +6,7 @@ import { Platform } from "react-native";
 import i18n from "@/i18n";
 
 import { ApiError, apiFetchBlob } from "./api";
+import { apiErrorText } from "./apiErrorText";
 
 export async function fileForm(asset: DocumentPickerAsset): Promise<FormData> {
   const form = new FormData();
@@ -41,13 +42,13 @@ export function saveBlobOnWeb(blob: Blob, filename: string): void {
 /**
  * Maps a failed download to a user-facing message: an expired session that
  * could not be refreshed asks the user to sign in again, a server problem
- * keeps its detail, and anything else gets a translated generic message.
+ * is translated by its code, and anything else gets a generic message.
  */
 export function downloadErrorMessage(error: unknown): string {
   if (error instanceof ApiError) {
     if (error.problem.status === 401) return i18n.t("ui.sessionExpired");
-    if (error.problem.code !== "network_error" && error.problem.detail)
-      return error.problem.detail;
+    if (error.problem.code !== "network_error")
+      return apiErrorText(error.problem);
   }
   return i18n.t("ui.downloadFailed");
 }

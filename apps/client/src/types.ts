@@ -27,6 +27,8 @@ export interface TicketType {
   max_per_order: number;
   is_hidden: boolean;
   price_category?: string;
+  /** Tickets still purchasable; present on single-event reads. */
+  available?: number | null;
 }
 
 export interface EventItem {
@@ -52,6 +54,7 @@ export interface EventItem {
   refund_policy: string;
   paid_sales_active: boolean;
   paid_sales_suspended: boolean;
+  cancellation_reason?: string | null;
   lifecycle_group?: "upcoming" | "active" | "completed" | "cancelled";
   ticket_types: TicketType[];
 }
@@ -82,4 +85,106 @@ export interface Problem {
   code: string;
   detail: string;
   errors?: { field: string; message: string }[];
+}
+
+// --- Attendee area (checkout, orders, ticket wallet, calendar, campaigns) ---
+
+export type TicketTypeWithSales = TicketType & {
+  sales_start_at?: string | null;
+  sales_end_at?: string | null;
+};
+
+export interface CalendarLinks {
+  available: boolean;
+  reason?: "event_cancelled" | "ticket_not_valid" | "order_closed" | null;
+  google?: string | null;
+  outlook?: string | null;
+  office365?: string | null;
+  yahoo?: string | null;
+  ics_path?: string | null;
+}
+
+export interface OrderItemInfo {
+  id: string;
+  ticket_type_id: string;
+  ticket_type_name: string;
+  unit_price_tiyin: number;
+  attendee_name: string;
+  attendee_email: string;
+  seat_label?: string | null;
+  ticket_id?: string | null;
+  ticket_code?: string | null;
+  ticket_status?: string | null;
+}
+
+export interface OrderInfo {
+  id: string;
+  order_number: string;
+  event_id: string;
+  status: string;
+  subtotal_tiyin: number;
+  discount_tiyin: number;
+  processing_fee_tiyin: number;
+  total_tiyin: number;
+  created_at: string;
+  event_title?: string | null;
+  event_status?: string | null;
+  event_starts_at?: string | null;
+  event_timezone?: string | null;
+  venue_name?: string | null;
+  venue_address?: string | null;
+  city?: string | null;
+  ticket_count?: number;
+  items?: OrderItemInfo[];
+}
+
+export interface OrderDetailInfo extends OrderInfo {
+  refund_policy?: string | null;
+  campaign?: { id: string; name: string; code: string } | null;
+  payments?: {
+    id: string;
+    status: string;
+    amount_tiyin: number;
+    provider_reference?: string | null;
+    failure_reason?: string | null;
+    created_at: string;
+  }[];
+  refunds?: {
+    id: string;
+    amount_tiyin: number;
+    status: string;
+    reason?: string | null;
+    created_at: string;
+  }[];
+  refunded_tiyin?: number;
+  calendar?: CalendarLinks;
+}
+
+export interface TicketInfo extends Ticket {
+  qr_available?: boolean;
+  event_title?: string | null;
+  event_status?: string | null;
+  starts_at?: string | null;
+  timezone?: string | null;
+  venue_name?: string | null;
+  venue_address?: string | null;
+  city?: string | null;
+  ticket_type_name?: string | null;
+  attendee_name?: string | null;
+  seat_label?: string | null;
+  order_id?: string | null;
+  order_number?: string | null;
+  checked_in_at?: string | null;
+  calendar?: CalendarLinks;
+}
+
+export interface CampaignResolution {
+  event_id: string;
+  event_title?: string;
+  campaign_id: string;
+  name?: string;
+  state?: "active" | "disabled" | "not_started" | "expired" | "exhausted";
+  promo_code: string | null;
+  starts_at?: string | null;
+  ends_at?: string | null;
 }

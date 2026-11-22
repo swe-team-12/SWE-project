@@ -1,10 +1,9 @@
 import { useMutation } from "@tanstack/react-query";
-import { Link } from "expo-router";
 import { useState } from "react";
-import { Pressable, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { Button, Field, Surface } from "@/components/ui";
+import { AuthCard, AuthLink } from "@/components/design/AuthCard";
+import { Button, Field, Notice } from "@/components/ui";
 import { apiFetch } from "@/lib/api";
 import { isValidEmail, normalizeEmail } from "@/lib/email";
 
@@ -33,13 +32,12 @@ export default function ForgotPasswordPage() {
     request.mutate(trimmedEmail);
   };
   return (
-    <Surface className="mx-auto mt-8 w-full max-w-lg gap-5 p-7">
-      <View>
-        <Text className="text-3xl font-black text-ink">
-          {t("ui.resetTitle")}
-        </Text>
-        <Text className="mt-2 text-muted">{t("ui.resetHelp")}</Text>
-      </View>
+    <AuthCard
+      icon="lock"
+      title={t("ui.resetTitle")}
+      subtitle={t("ui.resetHelp")}
+      footer={<AuthLink href="/login" label={t("ui.signInAgain")} />}
+    >
       <Field
         label={t("common.email")}
         value={email}
@@ -49,26 +47,26 @@ export default function ForgotPasswordPage() {
         autoCapitalize="none"
         keyboardType="email-address"
         autoComplete="email"
+        icon="mail"
       />
       <Button
         label={t("ui.sendReset")}
         onPress={submit}
         loading={request.isPending}
         disabled={!trimmedEmail}
+        size="lg"
+        fullWidth
       />
       {request.data ? (
-        <Text className="rounded-xl bg-emerald-50 p-3 font-bold text-success">
-          {request.data.message}
-        </Text>
+        <Notice tone="success" role="status" bold>
+          {t("attendee.auth.resetRequested")}
+        </Notice>
       ) : null}
       {request.error ? (
-        <Text className="text-danger">{(request.error as Error).message}</Text>
+        <Notice tone="danger" role="alert">
+          {(request.error as Error).message || t("ui.somethingWrong")}
+        </Notice>
       ) : null}
-      <Link href="/login" asChild>
-        <Pressable className="min-h-11 items-center justify-center">
-          <Text className="font-bold text-brand">{t("ui.signInAgain")}</Text>
-        </Pressable>
-      </Link>
-    </Surface>
+    </AuthCard>
   );
 }
