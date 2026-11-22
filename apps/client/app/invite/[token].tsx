@@ -1,10 +1,12 @@
 import { useMutation } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
-import { Text } from "react-native";
+import { Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { RequireAuth } from "@/components/RequireAuth";
-import { Button, ErrorBlock, Surface } from "@/components/ui";
+import { AuthCard } from "@/components/design/AuthCard";
+import { Icon, palette } from "@/components/icons";
+import { Button, ErrorBlock } from "@/components/ui";
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/providers/AuthProvider";
 import type { EventItem } from "@/types";
@@ -22,20 +24,26 @@ function InvitationContent() {
   // RequireAuth renders the signed-out state before this mounts.
   if (!user) return null;
   return (
-    <Surface className="mx-auto mt-8 max-w-xl gap-4">
-      <Text className="text-3xl font-black text-ink">
-        {t("ui.privateInvitation")}
-      </Text>
-      <Text className="text-muted">{user.email}</Text>
+    <AuthCard
+      icon="mail"
+      title={t("ui.privateInvitation")}
+      subtitle={t("ui.invitationHelp")}
+    >
+      <View className="flex-row items-center gap-3 rounded-2xl bg-canvas p-4">
+        <Icon name="user" size={18} color={palette.brand} />
+        <Text className="flex-1 font-bold text-ink">{user.email}</Text>
+      </View>
       <Button
         label={t("ui.acceptInvitation")}
         onPress={() => accept.mutate()}
         loading={accept.isPending}
+        size="lg"
+        fullWidth
       />
       {accept.error ? (
         <ErrorBlock message={(accept.error as Error).message} />
       ) : null}
-    </Surface>
+    </AuthCard>
   );
 }
 

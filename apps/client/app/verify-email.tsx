@@ -1,15 +1,20 @@
 import { useMutation } from "@tanstack/react-query";
-import { Link, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import { useEffect, useRef } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Text } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { Button, Surface } from "@/components/ui";
+import { ResendVerification } from "@/components/ResendVerification";
+import { AuthCard, AuthLink } from "@/components/design/AuthCard";
+import { Button, Notice } from "@/components/ui";
 import { apiFetch } from "@/lib/api";
+import { localizedErrorMessage } from "@/lib/errorMessage";
+import { useAuth } from "@/providers/AuthProvider";
 
 export default function VerifyEmailPage() {
   const { t } = useTranslation();
   const { token } = useLocalSearchParams<{ token: string }>();
+  const { user, refreshUser } = useAuth();
   const verify = useMutation({
     mutationFn: (value: string) =>
       apiFetch("/auth/verify-email", {
@@ -17,6 +22,10 @@ export default function VerifyEmailPage() {
         body: JSON.stringify({ token: value }),
         skipRefresh: true,
       }),
+    // A signed-in user sees the verified state without signing in again.
+    onSuccess: () => {
+      if (user) void refreshUser().catch(() => undefined);
+    },
   });
   const { mutate } = verify;
   // Tokens are single-use: submit each token at most once automatically,
@@ -28,44 +37,59 @@ export default function VerifyEmailPage() {
     mutate(token);
   }, [token, mutate]);
   return (
-    <Surface className="mx-auto mt-8 w-full max-w-lg gap-5 p-7">
-      <View>
-        <Text className="text-3xl font-black text-ink">
-          {t("ui.verifyTitle")}
-        </Text>
-        <Text className="mt-2 text-muted">{t("ui.verifyHelp")}</Text>
-      </View>
+    <AuthCard
+      icon="mail"
+      title={t("ui.verifyTitle")}
+      subtitle={t("ui.verifyHelp")}
+    >
       {!token ? (
-        <Text className="text-danger">{t("ui.verifyMissingToken")}</Text>
+        <>
+          <Notice tone="danger">{t("ui.verifyMissingToken")}</Notice>
+          {user?.is_email_verified ? (
+            <Notice tone="success" bold>
+              {t("attendee.auth.alreadyVerified")}
+            </Notice>
+          ) : (
+            <ResendVerification
+              defaultEmail={user?.email}
+              lockEmail={!!user}
+            />
+          )}
+        </>
       ) : null}
       {token && (verify.isIdle || verify.isPending) ? (
-        <Text className="text-muted" accessibilityLiveRegion="polite">
-          {t("ui.verifying")}
-        </Text>
+        <Notice role="status">{t("ui.verifying")}</Notice>
       ) : null}
       {verify.isSuccess ? (
         <>
-          <Text className="rounded-xl bg-emerald-50 p-3 font-bold text-success">
+          <Notice tone="success" bold>
             {t("ui.verified")}
-          </Text>
-          <Link href="/login" asChild>
-            <Pressable className="min-h-11 items-center justify-center rounded-xl border border-brand">
-              <Text className="font-bold text-brand">{t("common.signIn")}</Text>
-            </Pressable>
-          </Link>
+          </Notice>
+          <AuthLink
+            href={user ? "/" : "/login"}
+            label={user ? t("attendee.browseEvents") : t("common.signIn")}
+          />
         </>
       ) : null}
       {verify.error ? (
         <>
-          <Text className="text-danger">{(verify.error as Error).message}</Text>
+          <Notice tone="danger" role="alert">
+            {localizedErrorMessage(verify.error, t("ui.somethingWrong"))}
+          </Notice>
           <Button
             label={t("common.tryAgain")}
             onPress={() => token && verify.mutate(token)}
             loading={verify.isPending}
             disabled={!token}
+            size="lg"
+            fullWidth
           />
+          <Text className="text-sm text-muted">
+            {t("attendee.auth.resendHelp")}
+          </Text>
+          <ResendVerification defaultEmail={user?.email} lockEmail={!!user} />
         </>
       ) : null}
-    </Surface>
+    </AuthCard>
   );
 }

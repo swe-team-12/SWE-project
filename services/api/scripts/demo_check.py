@@ -59,6 +59,20 @@ class Demo:
             )
         return response
 
+    def fetch_signed(self, url: str) -> httpx.Response:
+        """Fetch a browser-facing signed URL, also when run inside the API container.
+
+        Signed URLs name the public object-storage host, which a container cannot
+        reach. Retry through the internal endpoint while keeping the signed Host.
+        """
+        try:
+            return self.client.get(url)
+        except httpx.ConnectError:
+            public = urlparse(url)
+            internal = urlparse(settings.s3_endpoint)
+            rewritten = public._replace(scheme=internal.scheme, netloc=internal.netloc).geturl()
+            return self.client.get(rewritten, headers={"Host": public.netloc})
+
     def login(self, email: str) -> dict:
         response = self.request(
             "POST",
@@ -119,7 +133,24 @@ class Demo:
             analytics["kpis"]["capacity"] == 168 and history and campaigns,
             "organizer analytics, campaigns, and append-only history",
         )
-        campaign = campaigns[0]
+        campaign = next(
+            (item for item in campaigns if item.get("state") == "active"), campaigns[0]
+        )
+        self.check(
+            analytics["range"]["all_time"]
+            and {"organizer_net_tiyin", "estimated_payout_tiyin", "check_in_rate"}
+            <= set(analytics["kpis"]),
+            "whole-life analytics range with payout and check-in KPIs",
+        )
+        resolved = self.request(
+            "GET", f"/campaigns/resolve/{campaign['campaign_url'].rsplit('/', 1)[-1]}"
+        ).json()
+        self.check(
+            resolved["state"] == "active"
+            and resolved["event_id"] == event_id
+            and resolved["promo_code"] == campaign["code"],
+            "campaign link resolves to its event with a stable state",
+        )
         campaign_png = self.request(
             "GET", f"/campaigns/{campaign['id']}/qr.png", token=organizer_token
         )
@@ -205,6 +236,22 @@ class Demo:
             and len(pdf.content) > 5_000
             and qr.content.startswith(b"\x89PNG"),
             "canonical PDF ticket and signed QR download",
+        )
+        ticket_calendar = self.request(
+            "GET", f"/tickets/{ticket['id']}/calendar.ics", token=outsider_token
+        )
+        order_detail = self.request(
+            "GET", f"/orders/{order['order_id']}", token=outsider_token
+        ).json()
+        self.check(
+            ticket["qr_available"]
+            and ticket["event_title"] == event["title"]
+            and bool(ticket["seat_label"])
+            and ticket["calendar"]["available"]
+            and "BEGIN:VCALENDAR" in ticket_calendar.text
+            and order_detail["items"][0]["ticket_id"] == ticket["id"]
+            and order_detail["event_title"] == event["title"],
+            "ticket wallet and order detail carry event, seat, and calendar context",
         )
 
         trust = self.request("GET", "/scanner/public-key").json()
@@ -299,6 +346,36 @@ class Demo:
             token=scanner_token,
         )
 
+        manual = self.request(
+            "POST",
+            (
+                f"/scanner/tickets/{ticket['id']}/check-in"
+                f"?event_id={event_id}&operation_id=manual-{uuid.uuid4()}"
+            ),
+            token=scanner_token,
+        ).json()
+        totals = self.request(
+            "GET", f"/scanner/events/{event_id}/totals", token=scanner_token
+        ).json()
+        attendee_rows = self.request(
+            "GET",
+            f"/events/{event_id}/attendees?q={quote(ticket['ticket_code'])}",
+            token=organizer_token,
+        ).json()
+        self.check(
+            manual["outcome"] == "valid"
+            and totals["checked_in"] >= 1
+            and totals["registered"] == totals["checked_in"] + totals["remaining"]
+            and attendee_rows["total"] == 1
+            and attendee_rows["items"][0]["checked_in"],
+            "manual check-in by ticket id with consistent admission totals",
+        )
+        self.request(
+            "POST",
+            f"/scanner/tickets/{ticket['id']}/reverse?operation_id=reverse-{uuid.uuid4()}",
+            token=scanner_token,
+        )
+
         support_case = self.request(
             "POST",
             "/support/cases",
@@ -332,7 +409,7 @@ class Demo:
             f"/support/attachments/{attachment['id']}/download",
             token=outsider_token,
         ).json()
-        stored = self.client.get(download["url"])
+        stored = self.fetch_signed(download["url"])
         denied = self.request(
             "GET",
             f"/support/attachments/{attachment['id']}/download",
@@ -370,6 +447,65 @@ class Demo:
             },
         ).json()
         self.check(refund["status"] == "succeeded" and refunded_scan["outcome"] == "refunded", "full organizer refund and scanner invalidation")
+        seats_after_refund = self.request("GET", f"/events/{event_id}/seats").json()
+        released_seat = next(
+            item for item in seats_after_refund if item["id"] == available_seat["id"]
+        )
+        refunded_ticket = self.request(
+            "GET", f"/tickets/{ticket['id']}", token=outsider_token
+        ).json()
+        refunded_qr = self.request(
+            "GET", f"/tickets/{ticket['id']}/qr.png", token=outsider_token, expected=409
+        )
+        event_refunds = self.request(
+            "GET", f"/events/{event_id}/refunds", token=organizer_token
+        ).json()
+        self.check(
+            released_seat["status"] == "available"
+            and refunded_ticket["qr_token"] is None
+            and refunded_qr.json()["code"] == "ticket_not_valid"
+            and any(item["id"] == refund["refund_id"] for item in event_refunds["items"]),
+            "refunded seat returns to sale and the refunded ticket loses its QR",
+        )
+        abandoned_checkout = self.request(
+            "POST",
+            "/checkout/sessions",
+            token=outsider_token,
+            expected=201,
+            json={
+                "event_id": event_id,
+                "idempotency_key": f"abandon-checkout-{uuid.uuid4()}",
+                "lines": [
+                    {
+                        "ticket_type_id": standard_type["id"],
+                        "seat_id": available_seat["id"],
+                        "quantity": 1,
+                        "attendee_name": "Demo Journey Attendee",
+                        "attendee_email": outsider_email,
+                    }
+                ],
+            },
+        ).json()
+        abandoned = self.request(
+            "POST",
+            f"/checkout/sessions/{abandoned_checkout['id']}/abandon",
+            token=outsider_token,
+        ).json()
+        abandoned_again = self.request(
+            "POST",
+            f"/checkout/sessions/{abandoned_checkout['id']}/abandon",
+            token=outsider_token,
+        ).json()
+        seats_after_abandon = self.request("GET", f"/events/{event_id}/seats").json()
+        self.check(
+            abandoned["status"] == "expired"
+            and abandoned_again["status"] == "expired"
+            and next(
+                item for item in seats_after_abandon if item["id"] == available_seat["id"]
+            )["status"]
+            == "available",
+            "abandoned checkout releases its held seat immediately",
+        )
         refund_analytics = self.request(
             "GET", f"/events/{event_id}/analytics", token=organizer_token
         ).json()
@@ -616,6 +752,11 @@ class Demo:
             "platform administration, privacy-safe analytics path, CSV, and notifications",
         )
         self.check(revoked_refresh.json()["code"] == "invalid_refresh_token", "logout revokes rotating session")
+        notification_types = {item["type"] for item in notifications}
+        self.check(
+            {"ticket_delivered", "refund_completed", "payment_failed"} <= notification_types,
+            "ticket delivery, refund, and failed payment notifications",
+        )
 
         print(f"\nBiletFlow demonstration complete: {len(self.completed)} checks passed.")
 

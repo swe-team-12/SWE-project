@@ -21,6 +21,8 @@ BiletFlow is a Kazakhstan-focused, self-service event ticketing demonstration bu
 - Organizer sales, capacity, refund, campaign, traffic-funnel, and attendance analytics with date/ticket filters and append-only event history.
 - Platform search, user/event suspension, activation monitoring, payout ledger, settings, support escalation, and CSV reporting.
 - Optional privacy-filtered GA4 Measurement Protocol emission and Data API import. Seeded funnel events are used when GA4 is disabled.
+- Attendee order history and order detail, live per-ticket-type availability, cancellation reasons, event reporting, and support-case escalation.
+- Kazakh, Russian, and English interfaces with a shared green design system (night cards, ticket stubs, seat map with hatched unavailable seats, sticky checkout total, and a mobile bottom tab bar).
 - Alembic migrations, PostgreSQL constraints and row locking, Redis/Celery jobs, MinIO objects, Mailpit email, Docker Compose, unit/UI/integration tests, and GitHub Actions.
 
 ## Architecture
@@ -286,7 +288,7 @@ npm run generate:api
 npm --workspace @biletflow/client run export
 ```
 
-Coverage includes password/QR security, date and time-zone contracts, KZT rounding, lifecycle grouping, single-page A4 ticket contents, stable/cancelled iCalendar output, offline signature validation, and screen-reader seat selection. `services/api/scripts/demo_check.py` adds a live 29-check journey through PostgreSQL, Redis, MinIO, and WebSockets. A separate concurrency verifier races the last ticket, the same seat, the final promo redemption, payment confirmation, and admission check-in. Playwright covers desktop/mobile web journeys, while the checked-in Maestro flow provides a native scanner smoke test. CI repeats static checks, unit/UI tests, all-platform Expo export, Docker image construction, migrations, seeding, the live journeys, and responsive browser checks.
+Coverage includes password/QR security, date and time-zone contracts, KZT rounding, lifecycle grouping, single-page A4 ticket contents, stable/cancelled iCalendar output, offline signature validation, and screen-reader seat selection. `services/api/scripts/demo_check.py` adds a live 36-check journey through PostgreSQL, Redis, MinIO, and WebSockets. A separate concurrency verifier races the last ticket, the same seat, the final promo redemption, payment confirmation, and admission check-in. Playwright covers desktop/mobile web journeys, while the checked-in Maestro flow provides a native scanner smoke test. CI repeats static checks, unit/UI tests, all-platform Expo export, Docker image construction, migrations, seeding, the live journeys, and responsive browser checks.
 
 ## Backup and recovery
 

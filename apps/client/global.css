@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800;900&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -6,11 +8,40 @@ html,
 body,
 #root {
   min-height: 100%;
-  background: #f4f8fb;
+  background: #edf3ee;
+}
+
+/* Soft green wash behind every screen (web). */
+body {
+  background:
+    radial-gradient(1100px 520px at 12% -8%, rgba(107, 232, 146, 0.34), transparent 62%),
+    radial-gradient(900px 480px at 100% 0%, rgba(23, 153, 90, 0.16), transparent 60%),
+    #edf3ee;
+  background-attachment: fixed;
+}
+
+/* React Native Web sets a system font on every text node, so the brand
+   typeface is applied globally; it falls back to the system font offline. */
+body,
+body * {
+  font-family:
+    "Onest",
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    Arial,
+    sans-serif !important;
 }
 
 *:focus-visible {
-  outline: 3px solid #00a7a5;
+  outline: 3px solid #0f7b45;
   outline-offset: 2px;
 }
 
+@media print {
+  body {
+    background: #ffffff;
+  }
+}

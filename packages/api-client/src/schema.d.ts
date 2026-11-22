@@ -38,6 +38,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/verify-email/resend": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Resend Verification Email
+         * @description Queue a fresh verification link. The response never reveals whether the account exists.
+         */
+        post: operations["resend_verification_email_api_v1_auth_verify_email_resend_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/login": {
         parameters: {
             query?: never;
@@ -147,10 +167,31 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** Get Organizer Profile */
+        get: operations["get_organizer_profile_api_v1_auth_organizer_profile_get"];
         /** Upsert Organizer Profile */
         put: operations["upsert_organizer_profile_api_v1_auth_organizer_profile_put"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/organizer-profile/verification/simulate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Simulate Organizer Verification
+         * @description Demonstration stand-in for identity and payout checks. No real provider is called.
+         */
+        post: operations["simulate_organizer_verification_api_v1_auth_organizer_profile_verification_simulate_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -312,6 +353,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/events/{event_id}/activation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Activation Status */
+        get: operations["activation_status_api_v1_events__event_id__activation_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/events/{event_id}/activation/simulate": {
         parameters: {
             query?: never;
@@ -347,7 +405,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/events/{event_id}/invitations": {
+    "/api/v1/events/{event_id}/staff/{assignment_id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -355,6 +413,24 @@ export interface paths {
             cookie?: never;
         };
         get?: never;
+        put?: never;
+        post?: never;
+        /** Remove Staff */
+        delete: operations["remove_staff_api_v1_events__event_id__staff__assignment_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/events/{event_id}/invitations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Invitations */
+        get: operations["list_invitations_api_v1_events__event_id__invitations_get"];
         put?: never;
         /** Invite Attendee */
         post: operations["invite_attendee_api_v1_events__event_id__invitations_post"];
@@ -409,6 +485,57 @@ export interface paths {
         put?: never;
         /** Duplicate Event */
         post: operations["duplicate_event_api_v1_events__event_id__duplicate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/events/{event_id}/reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Report Event */
+        post: operations["report_event_api_v1_events__event_id__reports_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/events/{event_id}/reports/mine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My Event Reports */
+        get: operations["my_event_reports_api_v1_events__event_id__reports_mine_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/events/{event_id}/support-cases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Event Support Cases */
+        get: operations["event_support_cases_api_v1_events__event_id__support_cases_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -484,6 +611,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/checkout/sessions/{session_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Checkout */
+        get: operations["get_checkout_api_v1_checkout_sessions__session_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/checkout/sessions/{session_id}/abandon": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Abandon Checkout
+         * @description Release the seat holds and reserved inventory of an unpaid checkout right away.
+         *
+         *     Idempotent: abandoning an already closed (expired/failed/abandoned) session
+         *     returns it unchanged. A completed checkout cannot be abandoned.
+         */
+        post: operations["abandon_checkout_api_v1_checkout_sessions__session_id__abandon_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/checkout/sessions/{session_id}/confirm": {
         parameters: {
             query?: never;
@@ -544,6 +711,74 @@ export interface paths {
         };
         /** Order Detail */
         get: operations["order_detail_api_v1_orders__order_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/{order_id}/calendar-links": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Order Calendar Links */
+        get: operations["order_calendar_links_api_v1_orders__order_id__calendar_links_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/events/{event_id}/attendees": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Event Attendees */
+        get: operations["event_attendees_api_v1_events__event_id__attendees_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/events/{event_id}/refunds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Event Refunds */
+        get: operations["event_refunds_api_v1_events__event_id__refunds_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/events/{event_id}/payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Event Payments */
+        get: operations["event_payments_api_v1_events__event_id__payments_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -688,6 +923,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/tickets/{ticket_id}/calendar.ics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ticket Calendar File */
+        get: operations["ticket_calendar_file_api_v1_tickets__ticket_id__calendar_ics_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tickets/{ticket_id}/calendar-links": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ticket Calendar Links */
+        get: operations["ticket_calendar_links_api_v1_tickets__ticket_id__calendar_links_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/orders/{order_id}/calendar.ics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Order Calendar File */
+        get: operations["order_calendar_file_api_v1_orders__order_id__calendar_ics_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/campaigns/{campaign_id}/qr.png": {
         parameters: {
             query?: never;
@@ -739,6 +1025,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/scanner/events/{event_id}/totals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Scanner Event Totals */
+        get: operations["scanner_event_totals_api_v1_scanner_events__event_id__totals_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/scanner/scan": {
         parameters: {
             query?: never;
@@ -750,6 +1053,26 @@ export interface paths {
         put?: never;
         /** Scan Ticket */
         post: operations["scan_ticket_api_v1_scanner_scan_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/scanner/tickets/{ticket_id}/check-in": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Check In By Ticket Id
+         * @description Manual check-in from the attendee search list (no QR needed).
+         */
+        post: operations["check_in_by_ticket_id_api_v1_scanner_tickets__ticket_id__check_in_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -816,7 +1139,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Sync Offline Scans */
+        /**
+         * Sync Offline Scans
+         * @description Apply queued offline scans in capture order.
+         *
+         *     Every operation gets its own result and savepoint: one unauthorised, unknown or
+         *     conflicting operation never discards the rest of the batch, and re-sending a
+         *     batch is harmless because operation ids are idempotent.
+         */
         post: operations["sync_offline_scans_api_v1_scanner_sync_post"];
         delete?: never;
         options?: never;
@@ -836,6 +1166,26 @@ export interface paths {
         put?: never;
         /** Create Case */
         post: operations["create_case_api_v1_support_cases_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/support/contexts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Case Contexts
+         * @description Events, orders and tickets the signed-in user may attach to a new support case.
+         */
+        get: operations["case_contexts_api_v1_support_contexts_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -871,6 +1221,40 @@ export interface paths {
         put?: never;
         /** Add Message */
         post: operations["add_message_api_v1_support_cases__case_id__messages_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/support/cases/{case_id}/assignees": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Case Assignees */
+        get: operations["case_assignees_api_v1_support_cases__case_id__assignees_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/support/cases/{case_id}/escalate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Escalate Case */
+        post: operations["escalate_case_api_v1_support_cases__case_id__escalate_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -962,6 +1346,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/events/{event_id}/payouts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Event Payouts */
+        get: operations["event_payouts_api_v1_events__event_id__payouts_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/notifications": {
         parameters: {
             query?: never;
@@ -1039,8 +1440,51 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Suspend Event */
+        /**
+         * Suspend Event
+         * @description Suspend the whole event, or lift that suspension.
+         *
+         *     Lifting returns the event to ``unpublished`` (the organizer republishes) unless
+         *     ``republish=true`` is passed. A separate paid-sales suspension is never touched here.
+         */
         post: operations["suspend_event_api_v1_admin_events__event_id__suspension_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/events/{event_id}/paid-sales-suspension": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Suspend Paid Sales
+         * @description Stop or resume paid sales only; publication and free registration are unaffected.
+         */
+        post: operations["suspend_paid_sales_api_v1_admin_events__event_id__paid_sales_suspension_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Platform Settings */
+        get: operations["platform_settings_api_v1_admin_settings_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1115,6 +1559,117 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Payments
+         * @description Payment monitor. ``problems_only`` narrows to failed and timed-out payments.
+         */
+        get: operations["list_payments_api_v1_admin_payments_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/refunds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Refunds */
+        get: operations["list_refunds_api_v1_admin_refunds_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/campaigns": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Campaign Activity
+         * @description Promotion activity across all events (disable one via PATCH /campaigns/{id}/disable).
+         */
+        get: operations["list_campaign_activity_api_v1_admin_campaigns_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/support-cases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Platform Support Cases
+         * @description Cases needing platform attention: escalated ones and organizer-to-platform ones.
+         */
+        get: operations["platform_support_cases_api_v1_admin_support_cases_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/reports/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Event Reports */
+        get: operations["list_event_reports_api_v1_admin_reports_events_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/reports/events/{report_id}/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resolve Event Report */
+        post: operations["resolve_event_report_api_v1_admin_reports_events__report_id__resolve_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/reports/operations.csv": {
         parameters: {
             query?: never;
@@ -1182,7 +1737,10 @@ export interface components {
             idempotency_key: string;
             /** Terms Accepted */
             terms_accepted: boolean;
-            /** Organizer Verification Confirmed */
+            /**
+             * Organizer Verification Confirmed
+             * @default false
+             */
             organizer_verification_confirmed: boolean;
         };
         /** AnalyticsCapture */
@@ -1282,6 +1840,40 @@ export interface components {
             applicable_ticket_type_ids: string[];
             /** Campaign Url */
             campaign_url?: string | null;
+            /** State */
+            state?: string | null;
+            /**
+             * Redemptions
+             * @default 0
+             */
+            redemptions: number;
+            /** Redemptions Remaining */
+            redemptions_remaining?: number | null;
+            /**
+             * Orders
+             * @default 0
+             */
+            orders: number;
+            /**
+             * Tickets Sold
+             * @default 0
+             */
+            tickets_sold: number;
+            /**
+             * Gross Tiyin
+             * @default 0
+             */
+            gross_tiyin: number;
+            /**
+             * Discount Tiyin
+             * @default 0
+             */
+            discount_tiyin: number;
+            /**
+             * Refunded Orders
+             * @default 0
+             */
+            refunded_orders: number;
         };
         /** CheckoutConfirm */
         CheckoutConfirm: {
@@ -1363,6 +1955,11 @@ export interface components {
          * @enum {string}
          */
         DiscountType: "percentage" | "fixed_kzt";
+        /** EscalationRequest */
+        EscalationRequest: {
+            /** Reason */
+            reason?: string | null;
+        };
         /** EventCreate */
         EventCreate: {
             /** Title */
@@ -1466,11 +2063,45 @@ export interface components {
             paid_sales_active: boolean;
             /** Paid Sales Suspended */
             paid_sales_suspended: boolean;
+            /** Cancellation Reason */
+            cancellation_reason?: string | null;
             /** Ticket Types */
             ticket_types?: components["schemas"]["TicketTypeOut"][];
             /** Lifecycle Group */
             lifecycle_group?: string | null;
         };
+        /**
+         * EventReportCategory
+         * @enum {string}
+         */
+        EventReportCategory: "fraud" | "misleading_information" | "inappropriate_content" | "safety" | "spam" | "other";
+        /** EventReportCreate */
+        EventReportCreate: {
+            category: components["schemas"]["EventReportCategory"];
+            /**
+             * Details
+             * @default
+             */
+            details: string;
+        };
+        /** EventReportResolution */
+        EventReportResolution: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "resolved" | "dismissed";
+            /**
+             * Note
+             * @default
+             */
+            note: string;
+        };
+        /**
+         * EventReportStatus
+         * @enum {string}
+         */
+        EventReportStatus: "open" | "resolved" | "dismissed";
         /**
          * EventStatus
          * @enum {string}
@@ -1556,6 +2187,11 @@ export interface components {
             /** Operations */
             operations: components["schemas"]["OfflineScanOperation"][];
         };
+        /**
+         * OrderStatus
+         * @enum {string}
+         */
+        OrderStatus: "pending" | "paid" | "free" | "refunded" | "cancelled";
         /** OrganizerProfileRequest */
         OrganizerProfileRequest: {
             /** Organization Name */
@@ -1569,6 +2205,16 @@ export interface components {
             contact_email: string;
             /** Payout Account Label */
             payout_account_label?: string | null;
+        };
+        /** PaidSalesSuspensionRequest */
+        PaidSalesSuspensionRequest: {
+            /** Suspended */
+            suspended: boolean;
+            /**
+             * Reason
+             * @default
+             */
+            reason: string;
         };
         /** PasswordResetConfirm */
         PasswordResetConfirm: {
@@ -1585,6 +2231,11 @@ export interface components {
              */
             email: string;
         };
+        /**
+         * PaymentStatus
+         * @enum {string}
+         */
+        PaymentStatus: "pending" | "succeeded" | "failed" | "timed_out" | "refunded";
         /** RefreshRequest */
         RefreshRequest: {
             /** Refresh Token */
@@ -1643,6 +2294,13 @@ export interface components {
             ticket_code?: string | null;
             /** Attendee Name */
             attendee_name?: string | null;
+            ticket_status?: components["schemas"]["TicketStatus"] | null;
+            /** Ticket Type Name */
+            ticket_type_name?: string | null;
+            /** Seat Label */
+            seat_label?: string | null;
+            /** Checked In At */
+            checked_in_at?: string | null;
             /** Message */
             message: string;
         };
@@ -1723,6 +2381,52 @@ export interface components {
             status: components["schemas"]["TicketStatus"];
             /** Qr Token */
             qr_token?: string | null;
+            /**
+             * Qr Available
+             * @default false
+             */
+            qr_available: boolean;
+            /** Event Title */
+            event_title?: string | null;
+            /** Event Slug */
+            event_slug?: string | null;
+            event_status?: components["schemas"]["EventStatus"] | null;
+            /** Starts At */
+            starts_at?: string | null;
+            /** Ends At */
+            ends_at?: string | null;
+            /** Timezone */
+            timezone?: string | null;
+            /** Venue Name */
+            venue_name?: string | null;
+            /** Venue Address */
+            venue_address?: string | null;
+            /** City */
+            city?: string | null;
+            /** Ticket Type Id */
+            ticket_type_id?: string | null;
+            /** Ticket Type Name */
+            ticket_type_name?: string | null;
+            /** Attendee Name */
+            attendee_name?: string | null;
+            /** Section */
+            section?: string | null;
+            /** Row */
+            row?: string | null;
+            /** Seat Number */
+            seat_number?: string | null;
+            /** Seat Label */
+            seat_label?: string | null;
+            /** Order Id */
+            order_id?: string | null;
+            /** Order Number */
+            order_number?: string | null;
+            /** Checked In At */
+            checked_in_at?: string | null;
+            /** Calendar */
+            calendar?: {
+                [key: string]: unknown;
+            } | null;
         };
         /**
          * TicketStatus
@@ -1775,6 +2479,12 @@ export interface components {
             is_hidden: boolean;
             /** Price Category */
             price_category: string | null;
+            /** Sales Start At */
+            sales_start_at?: string | null;
+            /** Sales End At */
+            sales_end_at?: string | null;
+            /** Available */
+            available?: number | null;
         };
         /** TicketTypeUpdate */
         TicketTypeUpdate: {
@@ -1832,6 +2542,19 @@ export interface components {
             input?: unknown;
             /** Context */
             ctx?: Record<string, never>;
+        };
+        /** VerificationSimulation */
+        VerificationSimulation: {
+            /**
+             * Identity
+             * @default true
+             */
+            identity: boolean;
+            /**
+             * Payout
+             * @default true
+             */
+            payout: boolean;
         };
         /** VerifyEmailRequest */
         VerifyEmailRequest: {
@@ -1902,6 +2625,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    resend_verification_email_api_v1_auth_verify_email_resend_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordResetRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
                 };
             };
             /** @description Validation Error */
@@ -2106,6 +2864,28 @@ export interface operations {
             };
         };
     };
+    get_organizer_profile_api_v1_auth_organizer_profile_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
     upsert_organizer_profile_api_v1_auth_organizer_profile_put: {
         parameters: {
             query?: never;
@@ -2141,6 +2921,41 @@ export interface operations {
             };
         };
     };
+    simulate_organizer_verification_api_v1_auth_organizer_profile_verification_simulate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VerificationSimulation"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_public_events_api_v1_events_get: {
         parameters: {
             query?: {
@@ -2148,6 +2963,9 @@ export interface operations {
                 city?: string | null;
                 category?: string | null;
                 starts_after?: string | null;
+                date_from?: string | null;
+                date_to?: string | null;
+                tz?: string;
                 limit?: number;
             };
             header?: never;
@@ -2496,6 +3314,39 @@ export interface operations {
             };
         };
     };
+    activation_status_api_v1_events__event_id__activation_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     activate_paid_sales_api_v1_events__event_id__activation_simulate_post: {
         parameters: {
             query?: never;
@@ -2590,6 +3441,73 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_staff_api_v1_events__event_id__staff__assignment_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: string;
+                assignment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_invitations_api_v1_events__event_id__invitations_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
                 };
             };
             /** @description Validation Error */
@@ -2720,6 +3638,112 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EventOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    report_event_api_v1_events__event_id__reports_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventReportCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    my_event_reports_api_v1_events__event_id__reports_mine_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    event_support_cases_api_v1_events__event_id__support_cases_get: {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["SupportStatus"] | null;
+                escalated?: boolean | null;
+            };
+            header?: never;
+            path: {
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
                 };
             };
             /** @description Validation Error */
@@ -2898,6 +3922,68 @@ export interface operations {
             };
         };
     };
+    get_checkout_api_v1_checkout_sessions__session_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckoutOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    abandon_checkout_api_v1_checkout_sessions__session_id__abandon_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CheckoutOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     confirm_checkout_api_v1_checkout_sessions__session_id__confirm_post: {
         parameters: {
             query?: never;
@@ -2962,6 +4048,8 @@ export interface operations {
             query?: {
                 cursor?: string | null;
                 limit?: number;
+                status?: components["schemas"]["OrderStatus"] | null;
+                q?: string;
             };
             header?: never;
             path: {
@@ -2999,6 +4087,151 @@ export interface operations {
             header?: never;
             path: {
                 order_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    order_calendar_links_api_v1_orders__order_id__calendar_links_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                order_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    event_attendees_api_v1_events__event_id__attendees_get: {
+        parameters: {
+            query?: {
+                q?: string;
+                status?: components["schemas"]["TicketStatus"] | null;
+                ticket_type_id?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    event_refunds_api_v1_events__event_id__refunds_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    event_payments_api_v1_events__event_id__payments_get: {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["PaymentStatus"] | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path: {
+                event_id: string;
             };
             cookie?: never;
         };
@@ -3274,6 +4507,101 @@ export interface operations {
             };
         };
     };
+    ticket_calendar_file_api_v1_tickets__ticket_id__calendar_ics_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ticket_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ticket_calendar_links_api_v1_tickets__ticket_id__calendar_links_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ticket_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    order_calendar_file_api_v1_orders__order_id__calendar_ics_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                order_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     campaign_qr_api_v1_campaigns__campaign_id__qr_png_get: {
         parameters: {
             query?: never;
@@ -3349,6 +4677,39 @@ export interface operations {
             };
         };
     };
+    scanner_event_totals_api_v1_scanner_events__event_id__totals_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     scan_ticket_api_v1_scanner_scan_post: {
         parameters: {
             query?: never;
@@ -3382,10 +4743,45 @@ export interface operations {
             };
         };
     };
+    check_in_by_ticket_id_api_v1_scanner_tickets__ticket_id__check_in_post: {
+        parameters: {
+            query: {
+                event_id: string;
+                operation_id: string;
+            };
+            header?: never;
+            path: {
+                ticket_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScanResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     reverse_check_in_api_v1_scanner_tickets__ticket_id__reverse_post: {
         parameters: {
             query: {
                 operation_id: string;
+                event_id?: string | null;
             };
             header?: never;
             path: {
@@ -3419,6 +4815,7 @@ export interface operations {
         parameters: {
             query?: {
                 q?: string;
+                limit?: number;
             };
             header?: never;
             path: {
@@ -3575,6 +4972,28 @@ export interface operations {
             };
         };
     };
+    case_contexts_api_v1_support_contexts_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
     case_detail_api_v1_support_cases__case_id__get: {
         parameters: {
             query?: never;
@@ -3662,6 +5081,76 @@ export interface operations {
         responses: {
             /** @description Successful Response */
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    case_assignees_api_v1_support_cases__case_id__assignees_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    escalate_case_api_v1_support_cases__case_id__escalate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["EscalationRequest"] | null;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3830,7 +5319,11 @@ export interface operations {
                 start?: string | null;
                 end?: string | null;
                 activity_type?: string | null;
+                action_prefix?: string | null;
+                actor_user_id?: string | null;
+                entity_type?: string | null;
                 limit?: number;
+                offset?: number;
             };
             header?: never;
             path: {
@@ -3849,6 +5342,39 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     }[];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    event_payouts_api_v1_events__event_id__payouts_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
                 };
             };
             /** @description Validation Error */
@@ -4002,6 +5528,7 @@ export interface operations {
             query: {
                 suspended: boolean;
                 reason: string;
+                republish?: boolean;
             };
             header?: never;
             path: {
@@ -4029,6 +5556,65 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    suspend_paid_sales_api_v1_admin_events__event_id__paid_sales_suspension_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PaidSalesSuspensionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    platform_settings_api_v1_admin_settings_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
                 };
             };
         };
@@ -4139,6 +5725,220 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     }[];
+                };
+            };
+        };
+    };
+    list_payments_api_v1_admin_payments_get: {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["PaymentStatus"] | null;
+                kind?: ("ticket_purchase" | "event_activation") | null;
+                q?: string | null;
+                problems_only?: boolean;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_refunds_api_v1_admin_refunds_get: {
+        parameters: {
+            query?: {
+                q?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_campaign_activity_api_v1_admin_campaigns_get: {
+        parameters: {
+            query?: {
+                q?: string | null;
+                enabled?: boolean | null;
+                event_id?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    platform_support_cases_api_v1_admin_support_cases_get: {
+        parameters: {
+            query?: {
+                scope?: "platform" | "escalated" | "organizer_to_platform" | "all";
+                status?: components["schemas"]["SupportStatus"] | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_event_reports_api_v1_admin_reports_events_get: {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["EventReportStatus"] | null;
+                event_id?: string | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    }[];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    resolve_event_report_api_v1_admin_reports_events__report_id__resolve_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventReportResolution"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

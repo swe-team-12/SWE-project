@@ -5,13 +5,26 @@ from datetime import UTC, date, datetime, time, timedelta
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from fastapi import APIRouter, File, Query, UploadFile
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import case, func, or_, select
 from sqlalchemy.orm import selectinload
 
-from app.access import get_event_or_404, require_event_permission, require_event_view_access
+from app.access import (
+    activation_fee_setting,
+    can_manage_event,
+    event_change_data,
+    get_event_or_404,
+    platform_admin_ids,
+    require_event_permission,
+    require_event_view_access,
+    ticket_holder_ids,
+)
 from app.config import settings
 from app.deps import CurrentUser, DbSession, OptionalUser
 from app.enums import (
+    CheckoutStatus,
+    EventReportCategory,
+    EventReportStatus,
     EventStatus,
     EventVisibility,
     NotificationType,
@@ -19,23 +32,28 @@ from app.enums import (
     PaymentStatus,
     SeatingMode,
     StaffRole,
+    SupportStatus,
     UserRole,
 )
 from app.errors import AppError
 from app.models import (
+    CheckoutLine,
+    CheckoutSession,
     Event,
     EventInvitation,
+    EventReport,
     Order,
     OrderItem,
     OrganizerProfile,
     Payment,
     SeatHold,
     StaffAssignment,
-    SystemSetting,
+    SupportCase,
     TicketType,
     User,
     VenueSeat,
 )
+from app.routers.support import serialize_cases
 from app.schemas import (
     ActivationSimulation,
     EventCreate,
@@ -70,6 +88,12 @@ def slugify(value: str) -> str:
 
 
 def lifecycle_group(event: Event) -> str:
+    """Time-based dashboard bucket.
+
+    Only ``cancelled`` is status driven. Draft, unpublished and suspended events are
+    deliberately bucketed by their dates so they stay reachable in the organizer
+    dashboard; clients must read ``status`` for the publication state.
+    """
     now = datetime.now(UTC)
     if event.status == EventStatus.CANCELLED:
         return "cancelled"
@@ -84,6 +108,54 @@ def serialize_event(event: Event) -> EventOut:
     payload = EventOut.model_validate(event)
     payload.lifecycle_group = lifecycle_group(event)
     payload.image_url = signed_download_url(event.image_key, 3600) if event.image_key else None
+    return payload
+
+
+async def with_availability(db: DbSession, payload: EventOut) -> EventOut:
+    """Fill each ticket type's remaining count for a single-event read."""
+    ids = [item.id for item in payload.ticket_types]
+    if not ids:
+        return payload
+    now = datetime.now(UTC)
+    sold: dict[uuid.UUID, int] = {
+        key: int(value)
+        for key, value in (
+            await db.execute(
+                select(OrderItem.ticket_type_id, func.count())
+                .join(Order)
+                .where(
+                    OrderItem.ticket_type_id.in_(ids),
+                    Order.status.in_([OrderStatus.PAID, OrderStatus.FREE]),
+                )
+                .group_by(OrderItem.ticket_type_id)
+            )
+        ).all()
+    }
+    reserved: dict[uuid.UUID, int] = {
+        key: int(value)
+        for key, value in (
+            await db.execute(
+                select(CheckoutLine.ticket_type_id, func.coalesce(func.sum(CheckoutLine.quantity), 0))
+                .join(CheckoutSession)
+                .where(
+                    CheckoutLine.ticket_type_id.in_(ids),
+                    CheckoutSession.status == CheckoutStatus.OPEN,
+                    CheckoutSession.expires_at > now,
+                )
+                .group_by(CheckoutLine.ticket_type_id)
+            )
+        ).all()
+    }
+    for item in payload.ticket_types:
+        taken = sold.get(item.id, 0) + reserved.get(item.id, 0)
+        item.available = max(item.quantity - taken, 0)
+    return payload
+
+
+def without_hidden_ticket_types(payload: EventOut) -> EventOut:
+    """Attendee-facing view: hidden ticket types are only visible to event managers."""
+    if isinstance(payload, EventOut):
+        payload.ticket_types = [item for item in payload.ticket_types if not item.is_hidden]
     return payload
 
 
@@ -209,7 +281,7 @@ async def list_public_events(
         statement = statement.where(Event.starts_at < day_after.astimezone(UTC))
     statement = statement.order_by(Event.starts_at, Event.id)
     events = (await db.scalars(statement)).unique().all()
-    return [serialize_event(event) for event in events]
+    return [without_hidden_ticket_types(serialize_event(event)) for event in events]
 
 
 @router.get("/events/slug/{slug}", response_model=EventOut)
@@ -223,14 +295,16 @@ async def event_by_slug(slug: str, db: DbSession) -> EventOut:
         raise AppError(
             403, "invitation_required", "Invitation required", "Open your invitation link."
         )
-    return serialize_event(event)
+    return await with_availability(db, without_hidden_ticket_types(serialize_event(event)))
 
 
 @router.get("/events/{event_id}", response_model=EventOut)
 async def event_detail(event_id: uuid.UUID, db: DbSession, user: OptionalUser) -> EventOut:
     event = await load_event(db, event_id)
     await require_event_view_access(db, event, user)
-    return serialize_event(event)
+    if await can_manage_event(db, event, user):
+        return await with_availability(db, serialize_event(event))
+    return await with_availability(db, without_hidden_ticket_types(serialize_event(event)))
 
 
 @router.get("/organizer/events", response_model=list[EventOut])
@@ -531,6 +605,21 @@ async def upload_event_image(
     return {"image_url": signed_download_url(key, 3600)}
 
 
+def require_not_moderated(event: Event) -> None:
+    """Organizers cannot change publication while an admin suspension or cancellation holds."""
+    if event.status == EventStatus.SUSPENDED:
+        raise AppError(
+            409,
+            "event_suspended",
+            "Event suspended",
+            "A platform administrator suspended this event. Contact platform support.",
+        )
+    if event.status == EventStatus.CANCELLED:
+        raise AppError(
+            409, "event_cancelled", "Event cancelled", "A cancelled event cannot be changed."
+        )
+
+
 @router.post("/events/{event_id}/publish", response_model=EventOut)
 async def publish_event(event_id: uuid.UUID, user: CurrentUser, db: DbSession) -> EventOut:
     event = await load_event(db, event_id)
@@ -541,6 +630,7 @@ async def publish_event(event_id: uuid.UUID, user: CurrentUser, db: DbSession) -
         raise AppError(
             409, "ticket_type_required", "Ticket required", "Create a ticket type first."
         )
+    require_not_moderated(event)
     event.status = EventStatus.PUBLISHED
     await record_audit(
         db,
@@ -559,6 +649,8 @@ async def publish_event(event_id: uuid.UUID, user: CurrentUser, db: DbSession) -
 async def unpublish_event(event_id: uuid.UUID, user: CurrentUser, db: DbSession) -> EventOut:
     event = await load_event(db, event_id)
     await require_event_permission(db, event, user, {StaffRole.MANAGER})
+    require_not_moderated(event)
+    was_published = event.status == EventStatus.PUBLISHED
     event.status = EventStatus.UNPUBLISHED
     await record_audit(
         db,
@@ -569,8 +661,202 @@ async def unpublish_event(event_id: uuid.UUID, user: CurrentUser, db: DbSession)
         actor_user_id=user.id,
         description="Unpublished event.",
     )
+    if was_published:
+        for holder_id in await ticket_holder_ids(db, event.id):
+            await create_notification(
+                db,
+                user_id=holder_id,
+                type=NotificationType.EVENT_UPDATED,
+                title=f"{event.title} is temporarily unavailable",
+                body="The organizer unpublished this event. Your tickets remain in your account.",
+                data=event_change_data(event, "unpublished"),
+            )
     await db.commit()
     return serialize_event(event)
+
+
+ACTIVATION_REQUIREMENTS: tuple[tuple[str, str, int, str, str], ...] = (
+    # key, error code, HTTP status, title, detail
+    (
+        "paid_ticket_type",
+        "paid_ticket_required",
+        409,
+        "Paid ticket required",
+        "Create a paid ticket type.",
+    ),
+    (
+        "organizer_profile",
+        "organizer_profile_required",
+        409,
+        "Profile required",
+        "Complete the organizer profile.",
+    ),
+    (
+        "email_verified",
+        "email_not_verified",
+        409,
+        "Verify email",
+        "The event owner must verify their email address.",
+    ),
+    (
+        "identity_verified",
+        "identity_verification_required",
+        409,
+        "Identity verification required",
+        "Complete the simulated organizer identity verification.",
+    ),
+    (
+        "payout_account",
+        "payout_account_required",
+        409,
+        "Payout account required",
+        "Add the demonstrative payout account to the organizer profile.",
+    ),
+    (
+        "payout_verified",
+        "payout_verification_required",
+        409,
+        "Payout verification required",
+        "Complete the simulated payout account verification.",
+    ),
+    (
+        "terms_accepted",
+        "terms_acceptance_required",
+        422,
+        "Accept the terms",
+        "Accept the paid-sales terms to continue.",
+    ),
+)
+
+
+def activation_checklist(
+    *,
+    event: Event,
+    owner: User | None,
+    profile: OrganizerProfile | None,
+    has_paid_ticket_type: bool,
+    terms_accepted: bool | None = None,
+) -> list[dict]:
+    """Every paid-sales activation requirement with its current state.
+
+    ``terms_accepted`` overrides the stored flag while a request that carries a fresh
+    acceptance is being evaluated.
+    """
+    state = {
+        "paid_ticket_type": has_paid_ticket_type,
+        "organizer_profile": profile is not None,
+        "email_verified": bool(owner and owner.is_email_verified),
+        "identity_verified": bool(profile and profile.identity_verified),
+        "payout_account": bool(profile and (profile.payout_account_label or "").strip()),
+        "payout_verified": bool(
+            profile and (profile.payout_account_label or "").strip() and profile.payout_verified
+        ),
+        "terms_accepted": bool(
+            event.terms_accepted if terms_accepted is None else terms_accepted
+        ),
+    }
+    items = [
+        {"key": key, "done": state[key], "error_code": code}
+        for key, code, _status, _title, _detail in ACTIVATION_REQUIREMENTS
+    ]
+    items.append(
+        {
+            "key": "activation_fee_paid",
+            "done": bool(event.activation_paid),
+            "error_code": "activation_fee_unpaid",
+        }
+    )
+    return items
+
+
+def first_missing_requirement(checklist: list[dict]) -> AppError | None:
+    """The stable error for the first unmet prerequisite (the fee itself is not one)."""
+    done = {item["key"]: item["done"] for item in checklist}
+    for key, code, status, title, detail in ACTIVATION_REQUIREMENTS:
+        if not done.get(key):
+            return AppError(status, code, title, detail)
+    return None
+
+
+async def activation_context(
+    db: DbSession, event: Event
+) -> tuple[User | None, OrganizerProfile | None, bool]:
+    owner = await db.get(User, event.owner_id)
+    profile = await db.scalar(
+        select(OrganizerProfile).where(OrganizerProfile.user_id == event.owner_id)
+    )
+    paid_type = await db.scalar(
+        select(TicketType.id)
+        .where(TicketType.event_id == event.id, TicketType.price_tiyin > 0)
+        .limit(1)
+    )
+    return owner, profile, bool(paid_type)
+
+
+@router.get("/events/{event_id}/activation")
+async def activation_status(event_id: uuid.UUID, user: CurrentUser, db: DbSession) -> dict:
+    event = await get_event_or_404(db, event_id)
+    await require_event_permission(db, event, user, {StaffRole.MANAGER, StaffRole.FINANCE})
+    owner, profile, has_paid_type = await activation_context(db, event)
+    checklist = activation_checklist(
+        event=event, owner=owner, profile=profile, has_paid_ticket_type=has_paid_type
+    )
+    fee, _setting = await activation_fee_setting(db)
+    rows = (
+        await db.execute(
+            select(Payment, User)
+            .join(User, User.id == Payment.user_id)
+            .where(Payment.event_id == event.id, Payment.kind == "event_activation")
+            .order_by(Payment.created_at.desc())
+            .limit(50)
+        )
+    ).all()
+    prerequisites = [
+        item for item in checklist if item["key"] not in {"terms_accepted", "activation_fee_paid"}
+    ]
+    return {
+        "event_id": str(event.id),
+        "event_status": event.status,
+        "mode": "DEMONSTRATION_ONLY",
+        "activation_fee_tiyin": fee,
+        "activation_paid": event.activation_paid,
+        "terms_accepted": event.terms_accepted,
+        "paid_sales_active": event.paid_sales_active,
+        "paid_sales_suspended": event.paid_sales_suspended,
+        "paid_sales_suspension_reason": event.paid_sales_suspension_reason,
+        "suspension_reason": (
+            event.suspension_reason if event.status == EventStatus.SUSPENDED else None
+        ),
+        "can_sell_paid_tickets": bool(
+            event.paid_sales_active
+            and not event.paid_sales_suspended
+            and event.status == EventStatus.PUBLISHED
+        ),
+        "ready_for_payment": all(item["done"] for item in prerequisites)
+        and not event.activation_paid,
+        "checklist": checklist,
+        "organizer": {
+            "user_id": str(event.owner_id),
+            "display_name": owner.display_name if owner else None,
+            "email_verified": bool(owner and owner.is_email_verified),
+            "organization_name": profile.organization_name if profile else None,
+            "identity_verified": bool(profile and profile.identity_verified),
+            "payout_account_label": profile.payout_account_label if profile else None,
+            "payout_verified": bool(profile and profile.payout_verified),
+        },
+        "payments": [
+            {
+                "id": str(payment.id),
+                "status": payment.status,
+                "amount_tiyin": payment.amount_tiyin,
+                "reference": payment.provider_reference,
+                "failure_reason": payment.failure_reason,
+                "created_at": payment.created_at,
+                "paid_by": {"id": str(payer.id), "display_name": payer.display_name},
+            }
+            for payment, payer in rows
+        ],
+    }
 
 
 @router.post("/events/{event_id}/activation/simulate")
@@ -582,9 +868,6 @@ async def activate_paid_sales(
 ) -> dict:
     event = await get_event_or_404(db, event_id)
     await require_event_permission(db, event, user, {StaffRole.MANAGER, StaffRole.FINANCE})
-    profile = await db.scalar(
-        select(OrganizerProfile).where(OrganizerProfile.user_id == event.owner_id)
-    )
     existing = await db.scalar(
         select(Payment).where(Payment.idempotency_key == payload.idempotency_key)
     )
@@ -609,46 +892,36 @@ async def activate_paid_sales(
             )
         return {
             "paid_sales_active": existing.status == PaymentStatus.SUCCEEDED,
+            "paid_sales_suspended": event.paid_sales_suspended,
             "activation_fee_tiyin": existing.amount_tiyin,
             "payment_status": existing.status,
+            "payment_id": str(existing.id),
             "mode": "DEMONSTRATION_ONLY",
         }
-    paid_type = await db.scalar(
-        select(TicketType.id).where(TicketType.event_id == event.id, TicketType.price_tiyin > 0)
-    )
-    if not paid_type:
+    if event.status == EventStatus.CANCELLED:
         raise AppError(
-            409, "paid_ticket_required", "Paid ticket required", "Create a paid ticket type."
+            409, "event_cancelled", "Event cancelled", "A cancelled event cannot be activated."
         )
-    if profile is None:
-        raise AppError(
-            409, "organizer_profile_required", "Profile required", "Complete the profile."
-        )
-    owner = await db.get(User, event.owner_id)
-    if owner is None or not owner.is_email_verified:
-        raise AppError(409, "email_not_verified", "Verify email", "Email verification is required.")
-    if not profile.payout_account_label:
+    if event.activation_paid:
         raise AppError(
             409,
-            "payout_account_required",
-            "Payout account required",
-            "Add the demonstrative payout account to the organizer profile.",
+            "activation_already_paid",
+            "Already activated",
+            "The activation fee for this event has already been paid.",
         )
-    if not payload.terms_accepted or not payload.organizer_verification_confirmed:
-        raise AppError(
-            422,
-            "activation_confirmations_required",
-            "Confirm activation requirements",
-            "Accept the terms and complete simulated organizer verification.",
+    owner, profile, has_paid_type = await activation_context(db, event)
+    missing = first_missing_requirement(
+        activation_checklist(
+            event=event,
+            owner=owner,
+            profile=profile,
+            has_paid_ticket_type=has_paid_type,
+            terms_accepted=payload.terms_accepted,
         )
-    configured_fee = await db.scalar(
-        select(SystemSetting).where(SystemSetting.key == "activation_fee_tiyin")
     )
-    activation_fee = (
-        int(configured_fee.value["amount_tiyin"])
-        if configured_fee and "amount_tiyin" in configured_fee.value
-        else settings.activation_fee_tiyin
-    )
+    if missing is not None:
+        raise missing
+    activation_fee, _setting = await activation_fee_setting(db)
     payment_status = {
         "success": PaymentStatus.SUCCEEDED,
         "failure": PaymentStatus.FAILED,
@@ -665,7 +938,43 @@ async def activate_paid_sales(
         failure_reason=None if payload.outcome == "success" else payload.outcome,
     )
     db.add(payment)
+    await db.flush()
+    # The terms were explicitly accepted with this request; keep that even if the
+    # simulated payment fails so the checklist reflects it on the retry.
+    event.terms_accepted = True
+    recipients = {event.owner_id, user.id}
     if payload.outcome != "success":
+        timed_out = payload.outcome == "timeout"
+        await record_audit(
+            db,
+            action="paid_sales.activation_timed_out" if timed_out else "paid_sales.activation_failed",
+            entity_type="payment",
+            entity_id=payment.id,
+            event_id=event.id,
+            actor_user_id=user.id,
+            description=(
+                "Simulated activation payment timed out."
+                if timed_out
+                else "Simulated activation payment failed."
+            ),
+            data={"amount_tiyin": activation_fee, "outcome": payload.outcome},
+        )
+        for recipient_id in recipients:
+            await create_notification(
+                db,
+                user_id=recipient_id,
+                type=NotificationType.ACTIVATION_STATUS,
+                title=f"Paid-sales activation failed for {event.title}",
+                body="The demonstration activation payment did not complete. Paid sales remain inactive.",
+                data=event_change_data(
+                    event,
+                    "activation_failed",
+                    payload.outcome,
+                    payment_id=str(payment.id),
+                    payment_status=payment_status.value,
+                    amount_tiyin=activation_fee,
+                ),
+            )
         await db.commit()
         raise AppError(
             402,
@@ -673,14 +982,9 @@ async def activate_paid_sales(
             "Activation payment failed",
             "Paid sales remain inactive. Try the demonstration payment again.",
         )
-    profile.identity_verified = True
-    if not profile.payout_account_label:
-        profile.payout_account_label = "Demo payout account"
-    profile.payout_verified = True
-    event.terms_accepted = True
     event.activation_paid = True
     event.paid_sales_active = True
-    event.paid_sales_suspended = False
+    # An administrator's paid-sales suspension is deliberately left untouched.
     await record_audit(
         db,
         action="paid_sales.activated",
@@ -689,13 +993,44 @@ async def activate_paid_sales(
         event_id=event.id,
         actor_user_id=user.id,
         description=f"Completed simulated paid-sales activation ({activation_fee} tiyin).",
+        data={"amount_tiyin": activation_fee, "payment_id": str(payment.id)},
     )
+    for recipient_id in recipients:
+        await create_notification(
+            db,
+            user_id=recipient_id,
+            type=NotificationType.ACTIVATION_STATUS,
+            title=f"Paid sales activated for {event.title}",
+            body="The demonstration activation fee was received. Paid ticket sales are active.",
+            data=event_change_data(
+                event,
+                "activation_succeeded",
+                payment_id=str(payment.id),
+                payment_status=payment_status.value,
+                amount_tiyin=activation_fee,
+            ),
+        )
     await db.commit()
     return {
         "paid_sales_active": True,
+        "paid_sales_suspended": event.paid_sales_suspended,
         "activation_fee_tiyin": activation_fee,
         "payment_status": payment.status,
+        "payment_id": str(payment.id),
         "mode": "DEMONSTRATION_ONLY",
+    }
+
+
+def serialize_staff(assignment: StaffAssignment, staff_user: User, assigner: User | None) -> dict:
+    return {
+        "id": str(assignment.id),
+        "user_id": str(staff_user.id),
+        "email": staff_user.email,
+        "display_name": staff_user.display_name,
+        "role": assignment.role,
+        "assigned_at": assignment.created_at,
+        "assigned_by_id": str(assignment.assigned_by_id),
+        "assigned_by_name": assigner.display_name if assigner else None,
     }
 
 
@@ -716,7 +1051,8 @@ async def assign_staff(
         )
     )
     if existing:
-        return {"id": str(existing.id), "role": existing.role, "user_id": str(staff_user.id)}
+        assigner = await db.get(User, existing.assigned_by_id)
+        return serialize_staff(existing, staff_user, assigner)
     assignment = StaffAssignment(
         event_id=event.id,
         user_id=staff_user.id,
@@ -724,8 +1060,28 @@ async def assign_staff(
         assigned_by_id=user.id,
     )
     db.add(assignment)
+    await db.flush()
+    await record_audit(
+        db,
+        action="staff.assigned",
+        entity_type="staff_assignment",
+        entity_id=assignment.id,
+        event_id=event.id,
+        actor_user_id=user.id,
+        description=f"Assigned {staff_user.email} as {payload.role.value}.",
+        data={"user_id": str(staff_user.id), "role": payload.role.value},
+    )
+    if staff_user.id != user.id:
+        await create_notification(
+            db,
+            user_id=staff_user.id,
+            type=NotificationType.EVENT_UPDATED,
+            title=f"You joined the team of {event.title}",
+            body=f"You were assigned the {payload.role.value} role.",
+            data=event_change_data(event, "staff_assigned", role=payload.role.value),
+        )
     await db.commit()
-    return {"id": str(assignment.id), "role": assignment.role, "user_id": str(staff_user.id)}
+    return serialize_staff(assignment, staff_user, user)
 
 
 @router.get("/events/{event_id}/staff")
@@ -740,16 +1096,86 @@ async def list_staff(event_id: uuid.UUID, user: CurrentUser, db: DbSession) -> l
             .order_by(User.display_name, StaffAssignment.role)
         )
     ).all()
-    return [
-        {
-            "id": str(assignment.id),
-            "user_id": str(staff_user.id),
-            "email": staff_user.email,
-            "display_name": staff_user.display_name,
-            "role": assignment.role,
+    assigner_ids = {assignment.assigned_by_id for assignment, _ in rows}
+    assigners: dict[uuid.UUID, User] = {}
+    if assigner_ids:
+        assigners = {
+            item.id: item
+            for item in (await db.scalars(select(User).where(User.id.in_(assigner_ids)))).all()
         }
+    return [
+        serialize_staff(assignment, staff_user, assigners.get(assignment.assigned_by_id))
         for assignment, staff_user in rows
     ]
+
+
+@router.delete("/events/{event_id}/staff/{assignment_id}")
+async def remove_staff(
+    event_id: uuid.UUID, assignment_id: uuid.UUID, user: CurrentUser, db: DbSession
+) -> dict:
+    event = await get_event_or_404(db, event_id)
+    await require_event_permission(db, event, user, {StaffRole.MANAGER})
+    assignment = await db.scalar(
+        select(StaffAssignment).where(
+            StaffAssignment.id == assignment_id, StaffAssignment.event_id == event.id
+        )
+    )
+    if assignment is None:
+        raise AppError(
+            404,
+            "staff_assignment_not_found",
+            "Assignment not found",
+            "The staff assignment does not exist.",
+        )
+    staff_user = await db.get(User, assignment.user_id)
+    role = assignment.role
+    # Cases assigned to someone who loses support access go back to the unassigned queue.
+    remaining_support_roles = (
+        await db.scalars(
+            select(StaffAssignment.id).where(
+                StaffAssignment.event_id == event.id,
+                StaffAssignment.user_id == assignment.user_id,
+                StaffAssignment.id != assignment.id,
+                StaffAssignment.role.in_([StaffRole.SUPPORT, StaffRole.MANAGER]),
+            )
+        )
+    ).all()
+    if not remaining_support_roles and assignment.user_id != event.owner_id:
+        open_cases = (
+            await db.scalars(
+                select(SupportCase).where(
+                    SupportCase.event_id == event.id,
+                    SupportCase.assignee_id == assignment.user_id,
+                    SupportCase.status != SupportStatus.RESOLVED,
+                )
+            )
+        ).all()
+        for case in open_cases:
+            case.assignee_id = None
+    await db.delete(assignment)
+    await record_audit(
+        db,
+        action="staff.removed",
+        entity_type="staff_assignment",
+        entity_id=assignment_id,
+        event_id=event.id,
+        actor_user_id=user.id,
+        description=(
+            f"Removed {staff_user.email if staff_user else 'a user'} from the {role.value} role."
+        ),
+        data={"user_id": str(assignment.user_id), "role": role.value},
+    )
+    if staff_user is not None and staff_user.id != user.id:
+        await create_notification(
+            db,
+            user_id=staff_user.id,
+            type=NotificationType.EVENT_UPDATED,
+            title=f"Your role on {event.title} was removed",
+            body=f"You no longer hold the {role.value} role.",
+            data=event_change_data(event, "staff_removed", role=role.value),
+        )
+    await db.commit()
+    return {"removed": True, "id": str(assignment_id)}
 
 
 @router.post("/events/{event_id}/invitations", status_code=201)
@@ -758,14 +1184,43 @@ async def invite_attendee(
 ) -> dict:
     event = await get_event_or_404(db, event_id)
     await require_event_permission(db, event, user, {StaffRole.MANAGER})
+    normalized = email.strip().lower()
+    if not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", normalized) or len(normalized) > 320:
+        raise AppError(422, "invalid_email", "Invalid email", "Enter a valid email address.")
     raw = opaque_token()
-    invitation = EventInvitation(
-        event_id=event.id,
-        email=email.lower(),
-        token_hash=token_hash(raw),
-        expires_at=event.ends_at + timedelta(days=1),
+    invitation = await db.scalar(
+        select(EventInvitation).where(
+            EventInvitation.event_id == event.id, EventInvitation.email == normalized
+        )
     )
-    db.add(invitation)
+    reissued = invitation is not None
+    if invitation is None:
+        invitation = EventInvitation(
+            event_id=event.id,
+            email=normalized,
+            token_hash=token_hash(raw),
+            expires_at=event.ends_at + timedelta(days=1),
+        )
+        db.add(invitation)
+        await db.flush()
+    else:
+        # Re-inviting the same address issues a fresh link instead of failing.
+        invitation.token_hash = token_hash(raw)
+        invitation.expires_at = event.ends_at + timedelta(days=1)
+    await record_audit(
+        db,
+        action="event.invitation_created",
+        entity_type="event_invitation",
+        entity_id=invitation.id,
+        event_id=event.id,
+        actor_user_id=user.id,
+        description=(
+            "Re-issued a private-event invitation."
+            if reissued
+            else "Created a private-event invitation."
+        ),
+        data={"email": normalized, "reissued": reissued},
+    )
     await db.commit()
     invitation_url = f"{settings.public_web_base_url}/invite/{raw}"
     enqueue_email(
@@ -776,7 +1231,32 @@ async def invite_attendee(
     return {
         "invitation_id": str(invitation.id),
         "url": invitation_url,
+        "email": invitation.email,
+        "reissued": reissued,
     }
+
+
+@router.get("/events/{event_id}/invitations")
+async def list_invitations(event_id: uuid.UUID, user: CurrentUser, db: DbSession) -> list[dict]:
+    event = await get_event_or_404(db, event_id)
+    await require_event_permission(db, event, user, {StaffRole.MANAGER})
+    items = (
+        await db.scalars(
+            select(EventInvitation)
+            .where(EventInvitation.event_id == event.id)
+            .order_by(EventInvitation.created_at.desc())
+        )
+    ).all()
+    return [
+        {
+            "id": str(item.id),
+            "email": item.email,
+            "accepted": item.accepted_by_user_id is not None,
+            "expires_at": item.expires_at,
+            "created_at": item.created_at,
+        }
+        for item in items
+    ]
 
 
 @router.post("/invitations/{raw_token}/accept", response_model=EventOut)
@@ -911,3 +1391,124 @@ async def duplicate_event(event_id: uuid.UUID, user: CurrentUser, db: DbSession)
     )
     await db.commit()
     return serialize_event(await load_event(db, clone.id))
+
+
+class EventReportCreate(BaseModel):
+    category: EventReportCategory
+    details: str = Field(default="", max_length=4_000)
+
+    @field_validator("details", mode="before")
+    @classmethod
+    def strip_details(cls, value: object) -> object:
+        return value.strip() if isinstance(value, str) else value
+
+
+def serialize_report(report: EventReport) -> dict:
+    return {
+        "id": str(report.id),
+        "event_id": str(report.event_id),
+        "category": report.category,
+        "details": report.details,
+        "status": report.status,
+        "resolution_note": report.resolution_note,
+        "resolved_at": report.resolved_at,
+        "created_at": report.created_at,
+    }
+
+
+@router.post("/events/{event_id}/reports", status_code=201)
+async def report_event(
+    event_id: uuid.UUID, payload: EventReportCreate, user: CurrentUser, db: DbSession
+) -> dict:
+    event = await get_event_or_404(db, event_id)
+    await require_event_view_access(db, event, user)
+    if event.owner_id == user.id:
+        raise AppError(
+            409, "cannot_report_own_event", "Action rejected", "You cannot report your own event."
+        )
+    if payload.category == EventReportCategory.OTHER and len(payload.details) < 10:
+        raise AppError(
+            422,
+            "report_details_required",
+            "Details required",
+            "Describe the problem in at least 10 characters.",
+        )
+    already_open = await db.scalar(
+        select(EventReport.id).where(
+            EventReport.event_id == event.id,
+            EventReport.reporter_id == user.id,
+            EventReport.status == EventReportStatus.OPEN,
+        )
+    )
+    if already_open:
+        raise AppError(
+            409,
+            "report_already_open",
+            "Report already submitted",
+            "Your earlier report for this event is still being reviewed.",
+        )
+    report = EventReport(
+        event_id=event.id,
+        reporter_id=user.id,
+        category=payload.category,
+        details=payload.details,
+    )
+    db.add(report)
+    await db.flush()
+    await record_audit(
+        db,
+        action="event.reported",
+        entity_type="event_report",
+        entity_id=report.id,
+        event_id=event.id,
+        actor_user_id=user.id,
+        description=f"Reported event for {payload.category.value}.",
+        data={"category": payload.category.value},
+    )
+    for admin_id in await platform_admin_ids(db):
+        await create_notification(
+            db,
+            user_id=admin_id,
+            type=NotificationType.EVENT_REPORT,
+            title=f"New report for {event.title}",
+            body=f"Category: {payload.category.value}.",
+            data=event_change_data(
+                event,
+                "event_reported",
+                report_id=str(report.id),
+                category=payload.category.value,
+            ),
+        )
+    await db.commit()
+    return serialize_report(report)
+
+
+@router.get("/events/{event_id}/reports/mine")
+async def my_event_reports(event_id: uuid.UUID, user: CurrentUser, db: DbSession) -> list[dict]:
+    reports = (
+        await db.scalars(
+            select(EventReport)
+            .where(EventReport.event_id == event_id, EventReport.reporter_id == user.id)
+            .order_by(EventReport.created_at.desc())
+        )
+    ).all()
+    return [serialize_report(report) for report in reports]
+
+
+@router.get("/events/{event_id}/support-cases")
+async def event_support_cases(
+    event_id: uuid.UUID,
+    user: CurrentUser,
+    db: DbSession,
+    status: SupportStatus | None = None,
+    escalated: bool | None = None,
+) -> list[dict]:
+    event = await get_event_or_404(db, event_id)
+    await require_event_permission(db, event, user, {StaffRole.MANAGER, StaffRole.SUPPORT})
+    statement = select(SupportCase).where(SupportCase.event_id == event.id)
+    if status is not None:
+        statement = statement.where(SupportCase.status == status)
+    if escalated is not None:
+        statement = statement.where(SupportCase.escalated.is_(escalated))
+    cases = (await db.scalars(statement.order_by(SupportCase.updated_at.desc()).limit(200))).all()
+    return await serialize_cases(db, list(cases))

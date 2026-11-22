@@ -1,10 +1,10 @@
 import { useMutation } from "@tanstack/react-query";
-import { Link, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";
-import { Pressable, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { Button, Field, Surface } from "@/components/ui";
+import { AuthCard, AuthLink } from "@/components/design/AuthCard";
+import { Button, Field, Notice } from "@/components/ui";
 import { apiFetch } from "@/lib/api";
 
 export default function ResetPasswordPage() {
@@ -20,41 +20,45 @@ export default function ResetPasswordPage() {
       }),
   });
   return (
-    <Surface className="mx-auto mt-8 w-full max-w-lg gap-5 p-7">
-      <View>
-        <Text className="text-3xl font-black text-ink">
-          {t("ui.choosePassword")}
-        </Text>
-        <Text className="mt-2 text-muted">{t("ui.passwordHint")}</Text>
-      </View>
+    <AuthCard
+      icon="lock"
+      title={t("ui.choosePassword")}
+      subtitle={t("ui.passwordHint")}
+    >
+      {!token ? (
+        <Notice tone="danger" role="alert">
+          {t("attendee.auth.resetMissingToken")}
+        </Notice>
+      ) : null}
       <Field
         label={t("ui.newPassword")}
         value={password}
         onChangeText={setPassword}
         secureTextEntry
         autoComplete="new-password"
+        icon="lock"
       />
       <Button
         label={t("ui.updatePassword")}
         onPress={() => reset.mutate()}
         loading={reset.isPending}
-        disabled={password.length < 10}
+        disabled={!token || password.length < 10}
+        size="lg"
+        fullWidth
       />
       {reset.data ? (
         <>
-          <Text className="rounded-xl bg-emerald-50 p-3 font-bold text-success">
-            {reset.data.message}
-          </Text>
-          <Link href="/login" asChild>
-            <Pressable className="min-h-11 items-center justify-center rounded-xl border border-brand">
-              <Text className="font-bold text-brand">{t("common.signIn")}</Text>
-            </Pressable>
-          </Link>
+          <Notice tone="success" role="status" bold>
+            {t("attendee.auth.passwordUpdated")}
+          </Notice>
+          <AuthLink href="/login" label={t("common.signIn")} />
         </>
       ) : null}
       {reset.error ? (
-        <Text className="text-danger">{(reset.error as Error).message}</Text>
+        <Notice tone="danger" role="alert">
+          {(reset.error as Error).message || t("ui.somethingWrong")}
+        </Notice>
       ) : null}
-    </Surface>
+    </AuthCard>
   );
 }

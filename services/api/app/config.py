@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     checkout_hold_minutes: int = 10
     activation_fee_tiyin: int = 500_000
     processor_fee_bps: int = 300
+    # PUBLIC_WEB_BASE_URL: origin of the web client as attendees reach it. Campaign
+    # links/QR codes (`<base>/c/<token>`), event URLs in calendar files and e-mails
+    # are built from it, so set it to the public address in every deployment.
     public_web_base_url: str = "http://localhost:8081"
     api_public_url: str = "http://localhost:8010"
     smtp_host: str = "localhost"
@@ -35,6 +38,10 @@ class Settings(BaseSettings):
     ga4_property_id: str | None = Field(default=None)
     ga4_access_token: str | None = Field(default=None)
     ga4_event_dimension: str = "customEvent:event_id"
+    # Optional explicit Unicode TTF files for PDF tickets (PDF_FONT_PATH /
+    # PDF_FONT_BOLD_PATH). When unset, DejaVu Sans and other system fonts are probed.
+    pdf_font_path: str | None = Field(default=None)
+    pdf_font_bold_path: str | None = Field(default=None)
     demo_password: str = "BiletFlowDemo123"
 
     @property

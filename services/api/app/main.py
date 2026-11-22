@@ -68,6 +68,7 @@ async def rate_limit_sensitive_routes(request: Request, call_next):
     scopes = {
         "/api/v1/auth/login": (20, 60),
         "/api/v1/auth/register": (10, 60),
+        "/api/v1/auth/verify-email/resend": (5, 60),
         "/api/v1/checkout/sessions": (60, 60),
         "/api/v1/scanner/scan": (240, 60),
     }

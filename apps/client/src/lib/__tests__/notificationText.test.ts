@@ -52,9 +52,10 @@ describe("payment notification translations", () => {
     );
     expect(structured.body).toContain("BF-456");
     expect(structured.body).toContain("2");
+    // A type the client does not know yet is shown as stored.
     const other = {
-      type: "payout_status",
-      title: "Payout sent",
+      type: "future_type",
+      title: "Something happened",
       body: "Open your case",
     };
     expect(notificationText(other, "kk")).toEqual({
@@ -133,4 +134,117 @@ describe("event update and support notification translations", () => {
     expect(status.title).toContain("SUP-2");
     expect(status.body).toContain(i18n.getFixedT("ru")("status.resolved"));
   });
+});
+
+describe("moderation, finance and assignment notifications", () => {
+  it.each(["en", "ru", "kk"])(
+    "translates every newer notification type in %s",
+    (locale) => {
+      const t = i18n.getFixedT(locale);
+      const cases = [
+        {
+          type: "support_assigned",
+          data: { case_number: "SUP-9", assigned_by_name: "Aru" },
+        },
+        {
+          type: "event_report",
+          data: { event_title: "Gala", category: "spam" },
+        },
+        {
+          type: "event_report",
+          data: { event_title: "Gala", change: "report_dismissed" },
+        },
+        {
+          type: "activation_status",
+          data: { event_title: "Gala", amount_tiyin: 500000 },
+        },
+        {
+          type: "activation_status",
+          data: { event_title: "Gala", change: "activation_failed" },
+        },
+        {
+          type: "ticket_delivered",
+          data: { event_title: "Gala", ticket_count: 2 },
+        },
+        { type: "payment_failed", data: { outcome: "failure" } },
+        {
+          type: "payout_status",
+          data: {
+            event_title: "Gala",
+            amount_tiyin: 100,
+            change: "payout_paid",
+          },
+        },
+        {
+          type: "event_updated",
+          data: {
+            event_title: "Gala",
+            change: "suspended",
+            reason: "Fake listing",
+          },
+        },
+        {
+          type: "event_updated",
+          data: {
+            event_title: "Gala",
+            change: "unpublished",
+            reason: "Wrong date",
+          },
+        },
+        {
+          type: "event_updated",
+          data: {
+            event_title: "Gala",
+            change: "paid_sales_suspended",
+            reason: "Checks",
+          },
+        },
+      ];
+      for (const item of cases) {
+        const text = notificationText(
+          { ...item, title: "stored title", body: "stored body" },
+          locale,
+        );
+        expect(text.title).not.toBe("stored title");
+        expect(text.body).not.toBe("stored body");
+        expect(`${text.title} ${text.body}`).not.toMatch(/notify\.|adminX\./);
+      }
+      const suspended = notificationText(
+        {
+          type: "event_updated",
+          title: "x",
+          body: "y",
+          data: {
+            event_title: "Gala",
+            change: "suspended",
+            reason: "Fake listing",
+          },
+        },
+        locale,
+      );
+      expect(suspended.title).toContain("Gala");
+      expect(suspended.body).toContain("Fake listing");
+      const assigned = notificationText(
+        {
+          type: "support_assigned",
+          title: "x",
+          body: "y",
+          data: { case_number: "SUP-9", assigned_by_name: "Aru" },
+        },
+        locale,
+      );
+      expect(assigned.title).toContain("SUP-9");
+      expect(assigned.body).toContain("Aru");
+      const report = notificationText(
+        {
+          type: "event_report",
+          title: "x",
+          body: "y",
+          data: { event_title: "Gala", category: "spam" },
+        },
+        locale,
+      );
+      expect(report.body).toContain(t("adminX.reportCategory.spam"));
+    },
+  );
 });

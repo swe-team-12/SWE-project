@@ -2,6 +2,8 @@ import i18nInstance from "i18next";
 import * as Localization from "expo-localization";
 import { initReactI18next } from "react-i18next";
 
+import { localeBundles } from "@/locales";
+
 const en = {
   common: {
     discover: "Discover",
@@ -1166,5 +1168,12 @@ void i18nInstance.use(initReactI18next).init({
   interpolation: { escapeValue: false },
   showSupportNotice: false,
 });
+
+// Area catalogues live in src/locales and are merged over the base catalogue.
+for (const bundle of localeBundles) {
+  i18nInstance.addResourceBundle("en", "translation", bundle.en, true, true);
+  i18nInstance.addResourceBundle("ru", "translation", bundle.ru, true, true);
+  i18nInstance.addResourceBundle("kk", "translation", bundle.kk, true, true);
+}
 
 export default i18nInstance;

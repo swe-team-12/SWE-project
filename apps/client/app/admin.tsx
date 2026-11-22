@@ -1,339 +1,121 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { RequireAuth } from "@/components/RequireAuth";
 import {
-  Button,
-  ErrorBlock,
-  Field,
-  LoadingBlock,
-  StatusBadge,
-  Surface,
-} from "@/components/ui";
-import { apiFetch } from "@/lib/api";
-import { downloadAuthenticatedFile } from "@/lib/files";
+  AdminActivations,
+  AdminCampaigns,
+  AdminPayments,
+  AdminPayouts,
+  AdminRefunds,
+  AdminSupportCases,
+} from "@/components/admin/AdminMonitoring";
+import { AdminOverview } from "@/components/admin/AdminOverview";
+import { AdminReports } from "@/components/admin/AdminReports";
+import { AdminSearch } from "@/components/admin/AdminSearch";
+import { AdminSettings } from "@/components/admin/AdminSettings";
+import { Tabs } from "@/components/admin/shared";
+import { RequireAuth } from "@/components/RequireAuth";
+import { Icon, palette } from "@/components/icons";
+import { Chip, ErrorBlock, ScreenHeader } from "@/components/ui";
 import { useAuth } from "@/providers/AuthProvider";
-import { formatDateTime } from "@/utils/date";
-import { formatKzt } from "@/utils/format";
 
-interface SearchResults {
-  users: {
-    id: string;
-    email: string;
-    display_name: string;
-    suspended: boolean;
-  }[];
-  events: { id: string; title: string; status: string }[];
-  orders: { id: string; number: string; status: string }[];
-  payments: {
-    id: string;
-    reference: string;
-    status: string;
-    amount_tiyin: number;
-  }[];
-}
-
-interface PayoutItem {
-  id: string;
-  event_id: string;
-  amount_tiyin: number;
-  eligible_at: string;
-  status: string;
-  paid_at?: string;
-}
-
-interface ActivationItem {
-  id: string;
-  event_id: string;
-  amount_tiyin: number;
-  status: string;
-  created_at: string;
-}
-
-async function downloadReport() {
-  await downloadAuthenticatedFile(
-    "/admin/reports/operations.csv",
-    "biletflow-operations.csv",
-    "text/csv",
-  );
-}
+const SECTIONS = [
+  "settings",
+  "search",
+  "reports",
+  "payments",
+  "refunds",
+  "activations",
+  "payouts",
+  "campaigns",
+  "cases",
+] as const;
+type Section = (typeof SECTIONS)[number];
 
 function AdminContent() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { user } = useAuth();
-  const [search, setSearch] = useState("");
-  const [submitted, setSubmitted] = useState("");
-  const [activationFee, setActivationFee] = useState("5000");
-  const report = useMutation({ mutationFn: downloadReport });
-  const results = useQuery({
-    queryKey: ["admin-search", submitted],
-    queryFn: () =>
-      apiFetch<SearchResults>(
-        `/admin/search?q=${encodeURIComponent(submitted)}`,
-      ),
-    enabled: submitted.length >= 2,
-  });
-  const payouts = useQuery({
-    queryKey: ["admin-payouts"],
-    queryFn: () => apiFetch<PayoutItem[]>("/admin/payouts"),
-    enabled: !!user?.roles.includes("platform_admin"),
-  });
-  const activations = useQuery({
-    queryKey: ["admin-activations"],
-    queryFn: () => apiFetch<ActivationItem[]>("/admin/activation-payments"),
-    enabled: !!user?.roles.includes("platform_admin"),
-  });
-  const userSuspension = useMutation({
-    mutationFn: ({ id, suspended }: { id: string; suspended: boolean }) =>
-      apiFetch(
-        `/admin/users/${id}/suspension?suspended=${suspended}&reason=${encodeURIComponent("Academic moderation demo")}`,
-        { method: "POST" },
-      ),
-    onSuccess: () => results.refetch(),
-  });
-  const eventSuspension = useMutation({
-    mutationFn: ({ id, suspended }: { id: string; suspended: boolean }) =>
-      apiFetch(
-        `/admin/events/${id}/suspension?suspended=${suspended}&reason=${encodeURIComponent("Academic moderation demo")}`,
-        { method: "POST" },
-      ),
-    onSuccess: () => results.refetch(),
-  });
-  const fee = useMutation({
-    mutationFn: () =>
-      apiFetch(
-        `/admin/settings/activation-fee?amount_tiyin=${Math.round(Number(activationFee) * 100)}`,
-        { method: "PUT" },
-      ),
-  });
-  const markPaid = useMutation({
-    mutationFn: (id: string) =>
-      apiFetch(`/admin/payouts/${id}/mark-paid`, { method: "POST" }),
-    onSuccess: () => payouts.refetch(),
-  });
+  const [section, setSection] = useState<Section>("settings");
+  // Cross-links between sections: a report opens the event in search, a search
+  // hit opens the matching rows of the payment monitor.
+  const [searchQuery, setSearchQuery] = useState<string>();
+  const [paymentsQuery, setPaymentsQuery] = useState<string>();
   if (!user?.roles.includes("platform_admin"))
-    return <ErrorBlock message={t("ui.administration")} />;
+    return <ErrorBlock message={t("adminX.accessDenied")} />;
+  const firstName = user.display_name?.trim().split(/\s+/)[0];
   return (
-    <ScrollView contentContainerClassName="gap-7 pb-16">
-      <View>
-        <Text className="text-sm font-black uppercase tracking-wider text-brand">
-          {t("ui.platformOperations")}
-        </Text>
-        <Text className="mt-1 text-4xl font-black text-ink">
-          {t("ui.administration")}
-        </Text>
-        <Text className="mt-2 text-muted">{t("ui.administrationHelp")}</Text>
-      </View>
-      <View className="flex-row flex-wrap items-start gap-5">
-        <Surface className="min-w-80 flex-[2] gap-4">
-          <Text className="text-xl font-black text-ink">
-            {t("ui.searchPlatform")}
+    <ScrollView
+      showsVerticalScrollIndicator={false}
+      contentContainerClassName="gap-6 pb-16"
+    >
+      <View className="flex-row items-center gap-3">
+        <View
+          className="h-12 w-12 items-center justify-center rounded-2xl bg-ink"
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+        >
+          {firstName ? (
+            <Text className="text-lg font-extrabold text-mint">
+              {firstName.slice(0, 1).toUpperCase()}
+            </Text>
+          ) : (
+            <Icon name="lock" size={22} color={palette.mint} />
+          )}
+        </View>
+        <View className="min-w-0 flex-1">
+          <Text className="text-sm text-muted">
+            {t("attendee.ux.greeting")}
           </Text>
-          <View className="flex-row items-end gap-3">
-            <View className="flex-1">
-              <Field
-                label={t("ui.searchPlatformField")}
-                value={search}
-                onChangeText={setSearch}
-              />
-            </View>
-            <Button
-              label={t("ui.search")}
-              onPress={() => setSubmitted(search)}
-              disabled={search.length < 2}
-            />
-          </View>
-          {results.isLoading ? <LoadingBlock /> : null}
-          {results.error ? (
-            <ErrorBlock message={(results.error as Error).message} />
-          ) : null}
-          {results.data?.users.map((item) => (
-            <View
-              key={item.id}
-              className="flex-row flex-wrap items-center justify-between gap-3 border-b border-line py-3"
-            >
-              <View>
-                <Text className="font-bold text-ink">{item.display_name}</Text>
-                <Text className="text-sm text-muted">{item.email}</Text>
-              </View>
-              <View className="flex-row items-center gap-2">
-                <StatusBadge status={item.suspended ? "suspended" : "active"} />
-                <Button
-                  label={item.suspended ? t("ui.restore") : t("ui.suspend")}
-                  variant={item.suspended ? "secondary" : "danger"}
-                  onPress={() =>
-                    userSuspension.mutate({
-                      id: item.id,
-                      suspended: !item.suspended,
-                    })
-                  }
-                />
-              </View>
-            </View>
-          ))}
-          {results.data?.events.map((item) => (
-            <View
-              key={item.id}
-              className="flex-row flex-wrap items-center justify-between gap-3 border-b border-line py-3"
-            >
-              <View>
-                <Text className="font-bold text-ink">{item.title}</Text>
-                <Text className="text-sm text-muted">
-                  {t("ui.eventLabel", { id: item.id })}
-                </Text>
-              </View>
-              <View className="flex-row items-center gap-2">
-                <StatusBadge status={item.status} />
-                <Button
-                  label={
-                    item.status === "suspended"
-                      ? t("ui.restore")
-                      : t("ui.suspend")
-                  }
-                  variant={item.status === "suspended" ? "secondary" : "danger"}
-                  onPress={() =>
-                    eventSuspension.mutate({
-                      id: item.id,
-                      suspended: item.status !== "suspended",
-                    })
-                  }
-                />
-              </View>
-            </View>
-          ))}
-          {results.data?.orders.map((item) => (
-            <View
-              key={item.id}
-              className="flex-row justify-between border-b border-line py-3"
-            >
-              <Text className="font-bold text-ink">{item.number}</Text>
-              <StatusBadge status={item.status} />
-            </View>
-          ))}
-          {results.data?.payments.map((item) => (
-            <View
-              key={item.id}
-              className="flex-row justify-between border-b border-line py-3"
-            >
-              <View>
-                <Text className="font-bold text-ink">{item.reference}</Text>
-                <Text className="text-sm text-muted">
-                  {formatKzt(item.amount_tiyin, i18n.language)}
-                </Text>
-              </View>
-              <StatusBadge status={item.status} />
-            </View>
-          ))}
-        </Surface>
-        <View className="min-w-72 flex-1 gap-5">
-          <Surface className="gap-4">
-            <Text className="text-xl font-black text-ink">
-              {t("ui.platformSettings")}
-            </Text>
-            <Field
-              label={t("ui.activationFee")}
-              value={activationFee}
-              onChangeText={(value) => {
-                setActivationFee(value);
-                fee.reset();
-              }}
-              keyboardType="numeric"
-            />
-            <Button
-              label={t("ui.saveActivationFee")}
-              variant="secondary"
-              onPress={() => fee.mutate()}
-              loading={fee.isPending}
-            />
-            {fee.isSuccess ? (
-              <Text className="font-bold text-success">
-                {t("ui.settingSaved")}
-              </Text>
-            ) : null}
-          </Surface>
-          <Surface className="gap-4">
-            <Text className="text-xl font-black text-ink">
-              {t("ui.operationalReport")}
-            </Text>
-            <Text className="text-muted">{t("ui.reportHelp")}</Text>
-            <Button
-              label={t("ui.downloadCsv")}
-              variant="secondary"
-              onPress={() => report.mutate()}
-              loading={report.isPending}
-            />
-            {report.error ? (
-              <ErrorBlock
-                message={report.error.message}
-                retry={() => report.mutate()}
-              />
-            ) : null}
-          </Surface>
+          <Text className="text-lg font-extrabold text-ink" numberOfLines={1}>
+            {user.display_name || t("ui.platformOperations")}
+          </Text>
+        </View>
+        <View className="hidden md:flex">
+          <Chip label={t("ui.platformOperations")} tone="mint" icon="lock" />
         </View>
       </View>
-      <View className="flex-row flex-wrap items-start gap-5">
-        <Surface className="min-w-80 flex-1 gap-4">
-          <Text className="text-xl font-black text-ink">
-            {t("ui.payoutLedger")}
-          </Text>
-          {payouts.data?.map((item) => (
-            <View
-              key={item.id}
-              className="flex-row flex-wrap items-center justify-between gap-3 border-b border-line py-3"
-            >
-              <View>
-                <Text className="font-bold text-ink">
-                  {formatKzt(item.amount_tiyin, i18n.language)}
-                </Text>
-                <Text className="text-xs text-muted">
-                  {t("ui.eligible", {
-                    date: formatDateTime(item.eligible_at, i18n.language),
-                  })}
-                </Text>
-              </View>
-              <View className="flex-row items-center gap-2">
-                <StatusBadge status={item.status} />
-                {item.status !== "paid_demo" ? (
-                  <Button
-                    label={t("ui.markPaid")}
-                    variant="secondary"
-                    onPress={() => markPaid.mutate(item.id)}
-                  />
-                ) : null}
-              </View>
-            </View>
-          ))}
-          {payouts.data?.length === 0 ? (
-            <Text className="text-muted">{t("ui.noPayouts")}</Text>
-          ) : null}
-        </Surface>
-        <Surface className="min-w-80 flex-1 gap-4">
-          <Text className="text-xl font-black text-ink">
-            {t("ui.activationReview")}
-          </Text>
-          {activations.data?.map((item) => (
-            <View
-              key={item.id}
-              className="flex-row items-center justify-between gap-3 border-b border-line py-3"
-            >
-              <View>
-                <Text className="font-bold text-ink">
-                  {formatKzt(item.amount_tiyin, i18n.language)}
-                </Text>
-                <Text className="text-xs text-muted">
-                  {formatDateTime(item.created_at, i18n.language)}
-                </Text>
-              </View>
-              <StatusBadge status={item.status} />
-            </View>
-          ))}
-          {activations.data?.length === 0 ? (
-            <Text className="text-muted">{t("ui.noActivations")}</Text>
-          ) : null}
-        </Surface>
-      </View>
+      <ScreenHeader
+        title={t("ui.administration")}
+        subtitle={t("ui.administrationHelp")}
+      />
+      <AdminOverview onOpen={setSection} />
+      <Tabs
+        label={t("adminX.sectionsLabel")}
+        value={section}
+        onChange={setSection}
+        options={SECTIONS.map((value) => ({
+          value,
+          label: t(`adminX.sections.${value}`),
+        }))}
+      />
+      {section === "settings" ? <AdminSettings /> : null}
+      {section === "search" ? (
+        <AdminSearch
+          key={searchQuery}
+          initialQuery={searchQuery}
+          onShowPayments={(query) => {
+            setPaymentsQuery(query);
+            setSection("payments");
+          }}
+        />
+      ) : null}
+      {section === "reports" ? (
+        <AdminReports
+          onFindEvent={(title) => {
+            setSearchQuery(title);
+            setSection("search");
+          }}
+        />
+      ) : null}
+      {section === "payments" ? (
+        <AdminPayments key={paymentsQuery} initialQuery={paymentsQuery} />
+      ) : null}
+      {section === "refunds" ? <AdminRefunds /> : null}
+      {section === "activations" ? <AdminActivations /> : null}
+      {section === "payouts" ? <AdminPayouts /> : null}
+      {section === "campaigns" ? <AdminCampaigns /> : null}
+      {section === "cases" ? <AdminSupportCases /> : null}
     </ScrollView>
   );
 }

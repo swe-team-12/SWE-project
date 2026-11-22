@@ -3,15 +3,26 @@ import Svg, {
   Circle,
   G,
   Line,
+  Polygon,
   Polyline,
   Rect,
   Text as SvgText,
 } from "react-native-svg";
 
+import { palette } from "./icons";
+
 const WIDTH = 560;
 // The SVG viewBox is scaled down to fit narrow dashboard cards (~300px wide),
 // so chart text needs a larger base size to stay legible after scaling.
-const INK = "#102A43";
+// Design palette: ink text and lines, brand bars, mint accents (mint is
+// only a fill next to ink, never text on white).
+const INK = palette.ink;
+const NIGHT = palette.night;
+const TRACK = palette.canvas;
+const BAR = palette.brand;
+const ACCENT = palette.mint;
+const GRID = palette.line;
+const LINE = palette.ink;
 const LABEL_SIZE = 17;
 const VALUE_SIZE = 16;
 
@@ -62,7 +73,7 @@ export function BarChart({
                 width={220}
                 height={22}
                 rx={11}
-                fill="#E6EFF5"
+                fill={TRACK}
               />
               <Rect
                 x={170}
@@ -70,7 +81,13 @@ export function BarChart({
                 width={barWidth}
                 height={22}
                 rx={11}
-                fill="#00A7A5"
+                fill={BAR}
+              />
+              <Circle
+                cx={170 + Math.max(11, barWidth - 11)}
+                cy={y + 11}
+                r={6}
+                fill={ACCENT}
               />
               <SvgText
                 x={400}
@@ -134,18 +151,29 @@ export function LineChart({
               x2={chartRight}
               y1={y}
               y2={y}
-              stroke="#D9E2EC"
+              stroke={GRID}
               strokeWidth={1}
             />
           );
         })}
+        {coordinates.length > 1 ? (
+          <Polygon
+            points={[
+              `${coordinates[0].x},${chartBottom}`,
+              ...coordinates.map((point) => `${point.x},${point.y}`),
+              `${coordinates[coordinates.length - 1].x},${chartBottom}`,
+            ].join(" ")}
+            fill={ACCENT}
+            opacity={0.3}
+          />
+        ) : null}
         {coordinates.length > 1 ? (
           <Polyline
             points={coordinates
               .map((point) => `${point.x},${point.y}`)
               .join(" ")}
             fill="none"
-            stroke="#007C83"
+            stroke={LINE}
             strokeWidth={4}
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -156,10 +184,10 @@ export function LineChart({
             <Circle
               cx={point.x}
               cy={point.y}
-              r={6}
-              fill="#00A7A5"
-              stroke="#FFFFFF"
-              strokeWidth={2}
+              r={7}
+              fill={ACCENT}
+              stroke={INK}
+              strokeWidth={3}
             />
             <SvgText
               x={point.x}
@@ -217,9 +245,16 @@ export function Funnel({
                 y={y}
                 width={width}
                 height={40}
-                rx={12}
-                fill={INK}
-                opacity={1 - index * 0.08}
+                rx={14}
+                fill={[NIGHT, INK, BAR][Math.min(index, 2)]}
+              />
+              <Rect
+                x={x + 12}
+                y={y + 14}
+                width={6}
+                height={12}
+                rx={3}
+                fill={ACCENT}
               />
               <SvgText
                 x={WIDTH / 2}

@@ -2,6 +2,7 @@ import {
   OfflineStorageUnavailableError,
   getOfflineBundle,
   isOfflineStorageAvailable,
+  lastOfflineSync,
   queueOfflineScan,
   queuedScanCount,
   syncOfflineScans,
@@ -25,7 +26,10 @@ describe("offline storage unavailable (e.g. Firefox private browsing)", () => {
     await expect(syncOfflineScans()).resolves.toEqual({
       accepted: 0,
       conflicts: 0,
+      rejected: 0,
+      results: [],
     });
+    await expect(lastOfflineSync()).resolves.toBeNull();
   });
 
   it("rejects writes with a typed error", async () => {
