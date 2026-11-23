@@ -18,7 +18,7 @@ export function SignInPrompt({ title, message }: SignInPromptProps) {
   const pathname = usePathname();
   return (
     <Surface className="mx-auto mt-8 w-full max-w-xl gap-4 p-7">
-      <Text accessibilityRole="header" className="text-3xl font-black text-ink">
+      <Text accessibilityRole="header" className="text-3xl font-semibold text-ink">
         {title ?? t("ui.signInRequired")}
       </Text>
       <Text className="text-muted">
@@ -29,7 +29,7 @@ export function SignInPrompt({ title, message }: SignInPromptProps) {
           accessibilityRole="button"
           className="min-h-12 items-center justify-center rounded-2xl bg-brand px-6"
         >
-          <Text className="font-bold text-white">{t("common.signIn")}</Text>
+          <Text className="font-medium text-white">{t("common.signIn")}</Text>
         </Pressable>
       </Link>
     </Surface>

@@ -78,7 +78,7 @@ export function AdminSettings() {
   return (
     <View className="flex-row flex-wrap items-start gap-5">
       <Surface className="min-w-80 flex-[2] gap-4">
-        <Text accessibilityRole="header" className="text-xl font-extrabold tracking-tight text-ink">
+        <Text accessibilityRole="header" className="text-xl font-semibold text-ink">
           {t("ui.platformSettings")}
         </Text>
         <ListState
@@ -164,7 +164,7 @@ export function AdminSettings() {
               <Notice tone="success">{t("ui.settingSaved")}</Notice>
             ) : null}
             <View className="gap-1 border-t border-line pt-3">
-              <Text className="font-bold text-ink">
+              <Text className="font-medium text-ink">
                 {t("adminX.settings.readOnlyTitle")}
               </Text>
               <Meta>
@@ -188,7 +188,7 @@ export function AdminSettings() {
         ) : null}
       </Surface>
       <Surface className="min-w-72 flex-1 gap-4">
-        <Text accessibilityRole="header" className="text-xl font-extrabold tracking-tight text-ink">
+        <Text accessibilityRole="header" className="text-xl font-semibold text-ink">
           {t("ui.operationalReport")}
         </Text>
         <Text className="text-muted">{t("ui.reportHelp")}</Text>

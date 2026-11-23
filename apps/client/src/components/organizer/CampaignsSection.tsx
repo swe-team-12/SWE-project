@@ -160,8 +160,8 @@ function CampaignCard({
     >
       <View className="flex-row flex-wrap items-start justify-between gap-3">
         <View className="min-w-52 flex-1 gap-1">
-          <Text className="text-lg font-extrabold text-ink">{campaign.name}</Text>
-          <Text selectable className="font-mono font-bold text-brand">
+          <Text className="text-lg font-semibold text-ink">{campaign.name}</Text>
+          <Text selectable className="font-mono font-medium text-brand">
             {campaign.code}
           </Text>
         </View>
@@ -234,7 +234,7 @@ function CampaignCard({
       </View>
       {campaign.campaign_url ? (
         <View className="gap-1">
-          <Text className="text-sm font-bold text-ink">
+          <Text className="text-sm font-medium text-ink">
             {t("organizer.campaigns.url")}
           </Text>
           <Text selectable className="text-sm text-brand">

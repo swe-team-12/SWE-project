@@ -119,7 +119,7 @@ function ResultCard({
       accessibilityRole="alert"
       accessibilityLiveRegion="assertive"
       accessibilityLabel={`${title}. ${view.attendee_name ?? view.ticket_code ?? ""}`}
-      className={`gap-4 rounded-[28px] border-2 p-5 ${style.card}`}
+      className={`gap-4 rounded-3xl border-2 p-5 ${style.card}`}
     >
       <View className="flex-row items-center gap-4">
         <View
@@ -127,9 +127,9 @@ function ResultCard({
           importantForAccessibility="no-hide-descendants"
           className="h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-panel"
         >
-          <Text className="text-4xl font-extrabold text-ink">{style.icon}</Text>
+          <Text className="text-4xl font-semibold text-ink">{style.icon}</Text>
         </View>
-        <Text className="flex-1 text-3xl font-extrabold leading-tight tracking-tight text-ink">
+        <Text className="flex-1 text-3xl font-semibold leading-tight tracking-tight text-ink">
           {title}
         </Text>
       </View>
@@ -137,14 +137,14 @@ function ResultCard({
         {view.detail ?? t(`scannerX.outcome.${view.kind}.help`)}
       </Text>
       {view.note ? (
-        <Text className="font-bold text-ink">
+        <Text className="font-medium text-ink">
           {t(`scannerX.note.${view.note}`)}
         </Text>
       ) : null}
       {view.attendee_name || view.ticket_code ? (
         <View className="gap-1 rounded-2xl bg-white/80 p-4">
           {view.attendee_name ? (
-            <Text className="text-2xl font-extrabold tracking-tight text-ink">
+            <Text className="text-2xl font-semibold tracking-tight text-ink">
               {view.attendee_name}
             </Text>
           ) : null}
@@ -458,7 +458,7 @@ function ScannerContent() {
                   ) : null}
                 </View>
                 <Text
-                  className={`flex-1 font-extrabold ${selected ? "text-white" : "text-ink"}`}
+                  className={`flex-1 font-semibold ${selected ? "text-white" : "text-ink"}`}
                   numberOfLines={2}
                 >
                   {event.title}
@@ -495,7 +495,7 @@ function ScannerContent() {
                 <View className="min-w-48 flex-1 gap-1">
                   <Text
                     accessibilityRole="header"
-                    className="text-2xl font-extrabold tracking-tight text-white"
+                    className="text-2xl font-semibold tracking-tight text-white"
                   >
                     {t("ui.scanAdmission")}
                   </Text>
@@ -546,7 +546,7 @@ function ScannerContent() {
                   className="flex-row items-center gap-3 rounded-2xl bg-white/10 p-3"
                 >
                   <ActivityIndicator color={palette.mint} />
-                  <Text className="font-bold text-white">
+                  <Text className="font-medium text-white">
                     {t("ui.validatingTicket")}
                   </Text>
                 </View>
@@ -570,7 +570,7 @@ function ScannerContent() {
                   }
                 />
               ) : (
-                <View className="items-center gap-2 rounded-[28px] border border-dashed border-line bg-white/60 px-4 py-8">
+                <View className="items-center gap-2 rounded-3xl border border-dashed border-line bg-white/60 px-4 py-8">
                   <Icon name="qr" size={24} color={palette.muted} />
                   <Text className="text-center text-muted">
                     {t("ui.noScan")}
@@ -666,7 +666,7 @@ function ScannerContent() {
                       >
                         <View className="flex-row items-start justify-between gap-3">
                           <View className="min-w-0 flex-1 gap-0.5">
-                            <Text className="text-base font-extrabold text-ink">
+                            <Text className="text-base font-semibold text-ink">
                               {item.name}
                             </Text>
                             <Text className="text-sm text-muted">
@@ -683,7 +683,7 @@ function ScannerContent() {
                               {item.email}
                             </Text>
                             {checkedIn && item.checked_in_at ? (
-                              <Text className="text-sm font-bold text-ink">
+                              <Text className="text-sm font-medium text-ink">
                                 {t("scannerX.checkedInAt", {
                                   date: date(item.checked_in_at),
                                 })}

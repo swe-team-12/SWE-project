@@ -183,7 +183,7 @@ export function SalesSection({
                 className="flex-row flex-wrap items-center justify-between gap-3 rounded-2xl border border-line bg-canvas/60 p-4"
               >
                 <View className="min-w-52 flex-1 gap-1">
-                  <Text className="font-bold text-ink">
+                  <Text className="font-medium text-ink">
                     {money(item.amount_tiyin)}
                   </Text>
                   <Fact
@@ -254,7 +254,7 @@ export function SalesSection({
             className="flex-row flex-wrap items-start justify-between gap-3 rounded-2xl border border-line bg-canvas/60 p-4"
           >
             <View className="min-w-60 flex-1 gap-1">
-              <Text className="font-bold text-ink">
+              <Text className="font-medium text-ink">
                 {money(payment.amount_tiyin)} ·{" "}
                 {t(`organizer.sales.kinds.${payment.kind}`, {
                   defaultValue: payment.kind.replaceAll("_", " "),

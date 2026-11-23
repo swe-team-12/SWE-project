@@ -384,7 +384,7 @@ export function SeatMap({
         <View className="gap-2">
           <View className="flex-row flex-wrap items-end justify-between gap-2">
             <View>
-              <Text className="text-xl font-extrabold tracking-tight text-ink">
+              <Text className="text-xl font-semibold text-ink">
                 {section === ALL
                   ? t("checkout.allSections")
                   : t("checkout.seatSection", { section })}
@@ -440,7 +440,7 @@ export function SeatMap({
           className="min-h-11 flex-row items-center justify-center gap-2 rounded-2xl border border-line bg-white px-4 active:opacity-80"
         >
           <Icon name={listMode ? "pin" : "filter"} size={16} />
-          <Text className="font-bold text-ink">
+          <Text className="font-medium text-ink">
             {listMode ? t("ui.visualMap") : t("ui.accessibleList")}
           </Text>
         </Pressable>
@@ -455,7 +455,7 @@ export function SeatMap({
               <View className="gap-2" key={name}>
                 <Text
                   accessibilityRole="header"
-                  className="text-sm font-black text-ink"
+                  className="text-sm font-semibold text-ink"
                 >
                   {t("checkout.seatSection", { section: name })}
                 </Text>
@@ -478,12 +478,20 @@ export function SeatMap({
                         accessibilityLabel={seatLabel(seat)}
                         className={`min-h-12 min-w-28 justify-center rounded-2xl border px-3 ${checked ? "border-ink bg-ink" : "border-line bg-white"} ${enabled ? "" : "opacity-60"}`}
                       >
-                        <Text
-                          className={`font-bold ${checked ? "text-white" : "text-ink"}`}
-                        >
-                          {seat.section}-{seat.row}-{seat.number}{" "}
-                          {seat.is_accessible ? "♿" : ""}
-                        </Text>
+                        <View className="flex-row items-center gap-1.5">
+                          <Text
+                            className={`font-medium ${checked ? "text-white" : "text-ink"}`}
+                          >
+                            {seat.section}-{seat.row}-{seat.number}
+                          </Text>
+                          {seat.is_accessible ? (
+                            <Icon
+                              name="wheelchair"
+                              size={16}
+                              color={checked ? palette.mint : palette.muted}
+                            />
+                          ) : null}
+                        </View>
                         <Text
                           className={`text-xs ${checked ? "text-mint" : "text-muted"}`}
                         >
@@ -545,7 +553,7 @@ export function SeatMap({
           </Svg>
         </ScrollView>
       )}
-      <Text className="text-sm font-bold text-ink" accessibilityLiveRegion="polite">
+      <Text className="text-sm font-medium text-ink" accessibilityLiveRegion="polite">
         {t("checkout.seatsSelectedCount", { count: selected.length })}
       </Text>
     </View>

@@ -27,20 +27,20 @@ export function AuthCard({
 }>) {
   return (
     <ScrollView contentContainerClassName="flex-grow items-center justify-center px-0 py-6 md:py-12">
-      <View className="w-full max-w-lg gap-6 rounded-[32px] border border-white/80 bg-white p-6 shadow-float md:p-9">
+      <View className="w-full max-w-lg gap-6 rounded-3xl border border-white/80 bg-white p-6 shadow-float md:p-9">
         <View className="gap-4">
           <View className="h-14 w-14 items-center justify-center rounded-2xl bg-night">
             <Icon name={icon} size={26} color={palette.mint} />
           </View>
           <View className="gap-2">
             {kicker ? (
-              <Text className="text-xs font-bold uppercase tracking-widest text-brand">
+              <Text className="text-xs font-medium text-brand">
                 {kicker}
               </Text>
             ) : null}
             <Text
               accessibilityRole="header"
-              className="text-3xl font-extrabold tracking-tight text-ink md:text-4xl"
+              className="text-3xl font-semibold tracking-tight text-ink md:text-4xl"
             >
               {title}
             </Text>
@@ -63,7 +63,7 @@ export function AuthLink({ href, label }: { href: Href; label: string }) {
   return (
     <Link href={href} asChild>
       <Pressable className="min-h-11 flex-row items-center justify-center gap-1 rounded-2xl active:opacity-70">
-        <Text className="text-center font-bold text-brand underline">
+        <Text className="text-center font-medium text-brand underline">
           {label}
         </Text>
         <Icon name="arrow-right" size={16} color={palette.brand} />

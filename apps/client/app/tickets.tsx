@@ -105,7 +105,7 @@ function TicketQr({ ticket }: { ticket: TicketInfo }) {
           )}
         </View>
       )}
-      <Text className="mt-2 text-center text-xs font-bold tracking-wide text-muted">
+      <Text className="mt-2 text-center text-xs font-medium text-muted">
         {t("ui.keepPrivate")}
       </Text>
     </View>
@@ -119,7 +119,7 @@ function TextLink({ href, label }: { href: Href; label: string }) {
         accessibilityRole="link"
         className="min-h-11 flex-row items-center gap-1 self-start"
       >
-        <Text className="font-bold text-brand">{label}</Text>
+        <Text className="font-medium text-brand">{label}</Text>
         <Icon name="chevron-right" size={16} color={palette.brand} />
       </Pressable>
     </Link>
@@ -168,7 +168,7 @@ function TicketCard({
           ) : null}
           <Text
             accessibilityRole="header"
-            className="text-2xl font-extrabold leading-tight tracking-tight text-white"
+            className="text-2xl font-semibold leading-tight tracking-tight text-white"
           >
             {ticket.event_title ?? t("attendee.orders.unknownEvent")}
           </Text>
@@ -176,6 +176,7 @@ function TicketCard({
         <StatusBadge status={ticket.status} tone="dark" />
       </View>
       <TicketStub
+        className="flex-1"
         footer={
           <>
             {ticket.event_status === "cancelled" ? (
@@ -186,18 +187,17 @@ function TicketCard({
             {usable ? (
               <>
                 <TicketQr ticket={ticket} />
-                <View className="items-center">
-                  <Button
-                    label={t("ui.downloadPrint")}
-                    iconName="download"
-                    onPress={onDownload}
-                    loading={downloading}
-                  />
-                </View>
+                <Button
+                  label={t("ui.downloadPrint")}
+                  iconName="download"
+                  onPress={onDownload}
+                  loading={downloading}
+                  fullWidth
+                />
               </>
             ) : (
               <View className="gap-1 rounded-2xl bg-canvas p-4">
-                <Text className="font-extrabold text-ink">
+                <Text className="font-semibold text-ink">
                   {t(`attendee.tickets.inactiveTitle.${ticket.status}`, {
                     defaultValue: t("attendee.tickets.inactiveTitle.other"),
                   })}
@@ -211,7 +211,7 @@ function TicketCard({
             )}
             {ticket.status === "valid" || ticket.status === "checked_in" ? (
               <View className="gap-2">
-                <Text className="text-sm font-bold text-ink">
+                <Text className="text-sm font-medium text-ink">
                   {t("common.calendar")}
                 </Text>
                 <CalendarActions
@@ -224,7 +224,7 @@ function TicketCard({
                 />
               </View>
             ) : null}
-            <View className="flex-row flex-wrap gap-x-6">
+            <View className="mt-auto flex-row flex-wrap gap-x-6">
               {ticket.order_id ? (
                 <TextLink
                   href={`/orders/${ticket.order_id}` as Href}
@@ -248,8 +248,8 @@ function TicketCard({
             />
           </View>
           {ticket.ticket_type_name ? (
-            <View className="rounded-full bg-mintsoft px-3 py-1">
-              <Text className="text-xs font-bold text-ink">
+            <View className="rounded-lg bg-mintsoft px-3 py-1">
+              <Text className="text-xs font-medium text-ink">
                 {ticket.ticket_type_name}
               </Text>
             </View>
@@ -278,7 +278,7 @@ function TicketCard({
               {t("attendee.tickets.where")}
             </Text>
             {ticket.venue_name ? (
-              <Text className="text-lg font-extrabold text-ink">
+              <Text className="text-lg font-semibold text-ink">
                 {ticket.venue_name}
               </Text>
             ) : null}

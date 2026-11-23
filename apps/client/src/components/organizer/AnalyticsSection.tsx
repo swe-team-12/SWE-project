@@ -217,7 +217,7 @@ export function AnalyticsSection({ event }: { event: OrgEvent }) {
               value={String(kpi.tickets_remaining ?? 0)}
             />
             <Metric
-              icon="sparkle"
+              icon="ticket"
               label={t("organizer.analytics.percentSold")}
               value={percentText(kpi.percentage_sold)}
             />
@@ -299,7 +299,7 @@ export function AnalyticsSection({ event }: { event: OrgEvent }) {
                     key={row.ticket_type_id ?? row.id}
                     className="gap-1 rounded-2xl border border-line bg-canvas/60 p-4"
                   >
-                    <Text className="font-bold text-ink">{row.name}</Text>
+                    <Text className="font-medium text-ink">{row.name}</Text>
                     <ProgressMeter
                       label={t("organizer.analytics.sold")}
                       value={row.sold}
@@ -352,7 +352,7 @@ export function AnalyticsSection({ event }: { event: OrgEvent }) {
                     key={row.id}
                     className="gap-1 rounded-2xl border border-line bg-canvas/60 p-4"
                   >
-                    <Text className="font-bold text-ink">
+                    <Text className="font-medium text-ink">
                       {row.name} · {row.code}
                     </Text>
                     <View className="flex-row flex-wrap gap-x-5 gap-y-1">

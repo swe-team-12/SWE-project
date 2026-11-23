@@ -90,7 +90,7 @@ export function EventLifecycle({
         >
           <View className="flex-row items-center gap-2">
             <Icon name="alert" size={18} color={palette.danger} />
-            <Text className="flex-1 font-bold text-danger">
+            <Text className="flex-1 font-medium text-danger">
               {t("organizer.lifecycle.suspendedTitle")}
             </Text>
           </View>
@@ -113,7 +113,7 @@ export function EventLifecycle({
         >
           <View className="flex-row items-center gap-2">
             <Icon name="alert" size={18} color={palette.danger} />
-            <Text className="flex-1 font-bold text-danger">
+            <Text className="flex-1 font-medium text-danger">
               {t("organizer.activation.suspendedTitle")}
             </Text>
           </View>
@@ -144,7 +144,7 @@ export function EventLifecycle({
             />
           ) : (
             <Button
-              iconName="sparkle"
+              iconName="check"
               label={t("ui.publish")}
               loading={publish.isPending}
               onPress={() => {
@@ -183,7 +183,7 @@ export function EventLifecycle({
         <View className="gap-3 rounded-2xl border border-red-100 bg-red-50/60 p-4">
           <View className="flex-row items-center gap-2">
             <Icon name="alert" size={18} color={palette.danger} />
-            <Text className="flex-1 text-lg font-extrabold text-danger">
+            <Text className="flex-1 text-lg font-semibold text-danger">
               {t("ui.cancelEvent")}
             </Text>
           </View>

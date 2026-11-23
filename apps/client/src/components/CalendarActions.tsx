@@ -2,7 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { Linking, View } from "react-native";
 import { useTranslation } from "react-i18next";
 
-import { Button, Chip, Notice } from "@/components/ui";
+import { Button, Notice } from "@/components/ui";
 import { localizedErrorMessage } from "@/lib/errorMessage";
 import { downloadAuthenticatedFile } from "@/lib/files";
 import type { CalendarLinks } from "@/types";
@@ -48,6 +48,7 @@ export function CalendarActions({
         onPress={() => download.mutate()}
         loading={download.isPending}
         iconName="download"
+        fullWidth
       />
       {download.error ? (
         <Notice tone="danger" role="alert">
@@ -57,12 +58,16 @@ export function CalendarActions({
       {links.length ? (
         <View className="flex-row flex-wrap gap-2">
           {links.map(({ provider, url }) => (
-            <Chip
-              key={provider}
-              label={t(`attendee.calendarProvider.${provider}`)}
-              icon="calendar"
-              onPress={() => void Linking.openURL(url)}
-            />
+            <View key={provider} className="min-w-0 grow basis-40">
+              <Button
+                label={t(`attendee.calendarProvider.${provider}`)}
+                variant="secondary"
+                size="sm"
+                iconName="calendar"
+                onPress={() => void Linking.openURL(url)}
+                fullWidth
+              />
+            </View>
           ))}
         </View>
       ) : null}

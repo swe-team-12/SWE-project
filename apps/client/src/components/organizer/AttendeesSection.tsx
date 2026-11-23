@@ -128,7 +128,7 @@ export function AttendeesSection({ event }: { event: OrgEvent }) {
           className="flex-row flex-wrap items-start justify-between gap-3 rounded-2xl border border-line bg-canvas/60 p-4"
         >
           <View className="min-w-60 flex-1 gap-1">
-            <Text className="font-bold text-ink">{row.attendee_name}</Text>
+            <Text className="font-medium text-ink">{row.attendee_name}</Text>
             <Text selectable className="text-sm text-muted">
               {row.attendee_email}
             </Text>
@@ -152,7 +152,7 @@ export function AttendeesSection({ event }: { event: OrgEvent }) {
               label={t("organizer.attendees.checkIn")}
               value={
                 row.checked_in
-                  ? `✓ ${t("organizer.attendees.checkedInAt", {
+                  ? `${t("organizer.attendees.checkedInAt", {
                       time: row.checked_in_at
                         ? formatDateTime(
                             row.checked_in_at,

@@ -94,7 +94,7 @@ function Wordmark({ compact }: { compact?: boolean }) {
           <Icon name="ticket" size={18} color={palette.mint} />
         </View>
         <Text
-          className={`font-extrabold tracking-tight text-ink ${compact ? "text-lg" : "text-2xl"}`}
+          className={`font-semibold tracking-tight text-ink ${compact ? "text-lg" : "text-2xl"}`}
         >
           BiletFlow
         </Text>
@@ -155,7 +155,7 @@ export function AppShell({ children }: PropsWithChildren) {
             className={`min-h-9 items-center justify-center rounded-xl ${desktop ? "min-w-9 px-2" : "min-w-8 px-1"} ${selected ? "bg-ink" : "bg-transparent"}`}
           >
             <Text
-              className={`text-xs uppercase ${selected ? "font-extrabold text-white" : "font-bold text-muted"}`}
+              className={`text-xs ${selected ? "font-semibold text-white" : "font-medium text-muted"}`}
             >
               {locale}
             </Text>
@@ -171,14 +171,14 @@ export function AppShell({ children }: PropsWithChildren) {
       onPress={() => void handleSignOut()}
       className={`min-h-11 justify-center rounded-2xl border border-line bg-white active:opacity-80 ${desktop ? "px-4" : "px-3"}`}
     >
-      <Text className="font-bold text-ink">{t("common.signOut")}</Text>
+      <Text className="font-medium text-ink">{t("common.signOut")}</Text>
     </Pressable>
   ) : (
     <Link href="/login" asChild>
       <Pressable
         className={`min-h-11 justify-center rounded-2xl bg-mint active:opacity-80 ${desktop ? "px-4" : "px-3"}`}
       >
-        <Text className="font-bold text-ink">{t("common.signIn")}</Text>
+        <Text className="font-medium text-ink">{t("common.signIn")}</Text>
       </Pressable>
     </Link>
   );
@@ -203,7 +203,7 @@ export function AppShell({ children }: PropsWithChildren) {
                 color={active ? palette.mint : palette.muted}
               />
               <Text
-                className={`text-sm ${active ? "font-extrabold text-white" : "font-semibold text-ink"}`}
+                className={`text-sm ${active ? "font-semibold text-white" : "font-semibold text-ink"}`}
               >
                 {t(`common.${link.key}`)}
               </Text>
@@ -235,7 +235,7 @@ export function AppShell({ children }: PropsWithChildren) {
           </View>
           <Text
             numberOfLines={1}
-            className={`text-[11px] ${active ? "font-extrabold text-ink" : "font-medium text-muted"}`}
+            className={`text-[11px] ${active ? "font-semibold text-ink" : "font-medium text-muted"}`}
           >
             {t(`common.${link.key}`)}
           </Text>
@@ -250,13 +250,13 @@ export function AppShell({ children }: PropsWithChildren) {
     >
       {desktop ? (
         <View className="px-8 pt-5">
-          <View className="mx-auto w-full max-w-[1100px] gap-3 rounded-[28px] border border-line bg-white/80 px-5 py-3 shadow-panel">
+          <View className="mx-auto w-full max-w-[1100px] gap-3 rounded-3xl border border-line bg-white/80 px-5 py-3 shadow-panel">
             <View className="flex-row items-center justify-between gap-4">
               <Wordmark />
               <View className="flex-row items-center gap-3">
                 {languagePicker}
-                <View className="hidden rounded-full border border-mint/60 bg-mintsoft px-3 py-2 md:flex">
-                  <Text className="text-xs font-bold text-ink">
+                <View className="hidden rounded-lg border border-mint/60 bg-mintsoft px-3 py-2 md:flex">
+                  <Text className="text-xs font-medium text-ink">
                     {t("common.demo")}
                   </Text>
                 </View>

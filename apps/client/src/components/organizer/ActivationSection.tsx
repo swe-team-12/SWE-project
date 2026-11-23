@@ -91,7 +91,7 @@ export function ActivationSection({
       <DarkCard className="gap-4">
         <Text
           accessibilityRole="header"
-          className="text-2xl font-extrabold tracking-tight text-white"
+          className="text-2xl font-semibold tracking-tight text-white"
         >
           {t("organizer.activation.title")}
         </Text>
@@ -139,7 +139,7 @@ export function ActivationSection({
           >
             <View className="flex-row items-center gap-2">
               <Icon name="alert" size={18} color={palette.danger} />
-              <Text className="flex-1 font-bold text-danger">
+              <Text className="flex-1 font-medium text-danger">
                 {t("organizer.activation.suspendedTitle")}
               </Text>
             </View>
@@ -177,7 +177,7 @@ export function ActivationSection({
               {needsProfile && access.isOwner ? (
                 <Link
                   href="/organizer"
-                  className="font-bold text-brand underline"
+                  className="font-medium text-brand underline"
                 >
                   {t("organizer.activation.openProfile")}
                 </Link>
@@ -191,7 +191,7 @@ export function ActivationSection({
       >
         <View className="flex-row flex-wrap items-end justify-between gap-2">
           <SectionTitle>{t("organizer.activation.checklist")}</SectionTitle>
-          <Text className="text-sm font-bold text-muted">
+          <Text className="text-sm font-medium text-muted">
             {t("organizerUi.checklistProgress", {
               done: doneCount,
               total: state.checklist.length,
@@ -308,7 +308,7 @@ export function ActivationSection({
             className="flex-row flex-wrap items-start justify-between gap-3"
           >
             <View className="min-w-60 flex-1 gap-1">
-              <Text className="font-bold text-ink">
+              <Text className="font-medium text-ink">
                 {formatKzt(payment.amount_tiyin, i18n.language)} ·{" "}
                 {formatDateTime(payment.created_at, i18n.language, "medium")}
               </Text>

@@ -70,7 +70,7 @@ function CardHeading({ icon, title }: { icon: IconName; title: string }) {
       </View>
       <Text
         accessibilityRole="header"
-        className="flex-1 text-lg font-extrabold tracking-tight text-ink"
+        className="flex-1 text-lg font-semibold text-ink"
       >
         {title}
       </Text>
@@ -128,7 +128,7 @@ function ReportEvent({ event }: { event: EventItem }) {
             accessibilityRole="link"
             className="min-h-11 flex-row items-center gap-1 self-start"
           >
-            <Text className="font-bold text-brand">
+            <Text className="font-medium text-brand">
               {t("attendee.report.signIn")}
             </Text>
             <Icon name="chevron-right" size={16} color={palette.brand} />
@@ -155,7 +155,7 @@ function ReportEvent({ event }: { event: EventItem }) {
       ) : (
         <View className="gap-4">
           <View accessibilityRole="radiogroup" className="gap-2">
-            <Text className="text-sm font-bold text-ink">
+            <Text className="text-sm font-medium text-ink">
               {t("attendee.report.category")}
             </Text>
             {REPORT_CATEGORIES.map((item) => {
@@ -177,7 +177,7 @@ function ReportEvent({ event }: { event: EventItem }) {
                     ) : null}
                   </View>
                   <Text
-                    className={`flex-1 ${selected ? "font-bold text-white" : "text-ink"}`}
+                    className={`flex-1 ${selected ? "font-medium text-white" : "text-ink"}`}
                   >
                     {t(`attendee.report.categories.${item}`)}
                   </Text>
@@ -212,7 +212,7 @@ function ReportEvent({ event }: { event: EventItem }) {
           ) : null}
           {confirming ? (
             <View className="gap-3 rounded-2xl border border-red-100 bg-red-50 p-4">
-              <Text className="font-bold text-ink">
+              <Text className="font-medium text-ink">
                 {t("attendee.report.confirmTitle")}
               </Text>
               <Text className="text-sm text-muted">
@@ -400,8 +400,8 @@ export default function EventPage() {
         </View>
         {promo && salesState === "open" ? (
           <View className="flex-row items-center gap-2 self-start rounded-2xl bg-mint px-4 py-3">
-            <Icon name="sparkle" size={18} />
-            <Text className="font-bold text-ink">
+            <Icon name="ticket" size={18} />
+            <Text className="font-medium text-ink">
               {t("ui.promoApplied", { code: promo })}
             </Text>
           </View>
@@ -412,7 +412,7 @@ export default function EventPage() {
         <Surface className="gap-2 border-red-100 bg-red-50">
           <Text
             accessibilityRole="header"
-            className="text-lg font-extrabold text-danger"
+            className="text-lg font-semibold text-danger"
           >
             {t(`attendee.event.stateTitle.${salesState}`)}
           </Text>
@@ -475,7 +475,7 @@ export default function EventPage() {
             )}
             {active ? (
               <View className="gap-1.5 rounded-2xl bg-canvas p-4">
-                <Text className="font-extrabold text-ink">
+                <Text className="font-semibold text-ink">
                   {active.type.name}
                 </Text>
                 {active.type.description ? (
@@ -489,16 +489,16 @@ export default function EventPage() {
                   })}
                 </Text>
                 {active.soldOut ? (
-                  <Text className="text-sm font-bold text-danger">
+                  <Text className="text-sm font-medium text-danger">
                     {t("common.soldOut")}
                   </Text>
                 ) : active.remaining !== null ? (
-                  <Text className="text-sm font-bold text-success">
+                  <Text className="text-sm font-medium text-success">
                     {t("attendee.event.seatsLeft", { count: active.remaining })}
                   </Text>
                 ) : null}
                 {active.sales !== "on_sale" && salesState === "open" ? (
-                  <Text className="text-sm font-bold text-danger">
+                  <Text className="text-sm font-medium text-danger">
                     {t(`checkout.salesState.${active.sales}`, {
                       date: formatEventDateTime(
                         active.type.sales_start_at,
@@ -522,15 +522,15 @@ export default function EventPage() {
               </View>
             ) : null}
             {salesState !== "open" ? (
-              <Text className="rounded-2xl bg-canvas p-4 text-center font-bold text-muted">
+              <Text className="rounded-2xl bg-canvas p-4 text-center font-medium text-muted">
                 {t("attendee.event.salesClosed")}
               </Text>
             ) : allSoldOut ? (
-              <Text className="rounded-2xl bg-canvas p-4 text-center font-bold text-muted">
+              <Text className="rounded-2xl bg-canvas p-4 text-center font-medium text-muted">
                 {t("attendee.event.allSoldOut")}
               </Text>
             ) : !anyPurchasable ? (
-              <Text className="rounded-2xl bg-canvas p-4 text-center font-bold text-muted">
+              <Text className="rounded-2xl bg-canvas p-4 text-center font-medium text-muted">
                 {t("attendee.event.nothingOnSale")}
               </Text>
             ) : (
@@ -546,7 +546,7 @@ export default function EventPage() {
                   className="min-h-14 flex-row items-center justify-center gap-2 rounded-2xl bg-mint px-6 active:opacity-80"
                 >
                   <Icon name="ticket" size={20} />
-                  <Text className="text-lg font-extrabold text-ink">
+                  <Text className="text-lg font-semibold text-ink">
                     {t("common.buyTickets")}
                   </Text>
                 </Pressable>
@@ -554,7 +554,7 @@ export default function EventPage() {
             )}
           </Surface>
           <Surface className="gap-3">
-            <CardHeading icon="sparkle" title={t("attendee.ux.about")} />
+            <CardHeading icon="ticket" title={t("attendee.ux.about")} />
             <Text className="leading-6 text-ink">
               {event.description}
             </Text>
@@ -564,7 +564,7 @@ export default function EventPage() {
         <View className="min-w-0 flex-[2] basis-72 gap-6">
           <Surface className="gap-4">
             <CardHeading icon="calendar" title={t("common.date")} />
-            <Text className="text-lg font-bold text-ink">
+            <Text className="text-lg font-medium text-ink">
               {formatEventDateTime(
                 event.starts_at,
                 event.timezone,
@@ -583,7 +583,7 @@ export default function EventPage() {
             </Text>
             <View className="h-px bg-line" />
             <CardHeading icon="pin" title={t("common.venue")} />
-            <Text className="text-lg font-bold text-ink">
+            <Text className="text-lg font-medium text-ink">
               {event.venue_name}
             </Text>
             <Text className="text-muted">
@@ -620,7 +620,7 @@ export default function EventPage() {
                 className="min-h-12 flex-row items-center justify-center gap-2 self-start rounded-2xl border border-line bg-white px-4 active:opacity-80"
               >
                 <Icon name="mail" size={18} />
-                <Text className="font-bold text-ink">
+                <Text className="font-medium text-ink">
                   {t("attendee.event.contactOrganizer")}
                 </Text>
               </Pressable>

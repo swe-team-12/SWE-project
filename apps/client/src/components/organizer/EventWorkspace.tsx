@@ -225,7 +225,7 @@ export function EventWorkspace({ eventId }: { eventId: string }) {
         <Link
           href={{ pathname: "/events/[id]", params: { id: event.id } }}
           accessibilityRole="link"
-          className="font-bold text-brand underline"
+          className="font-medium text-brand underline"
         >
           {t("organizer.access.openPublicPage")}
         </Link>

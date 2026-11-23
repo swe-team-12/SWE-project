@@ -56,7 +56,7 @@ function AdminContent() {
           importantForAccessibility="no-hide-descendants"
         >
           {firstName ? (
-            <Text className="text-lg font-extrabold text-mint">
+            <Text className="text-lg font-semibold text-mint">
               {firstName.slice(0, 1).toUpperCase()}
             </Text>
           ) : (
@@ -67,7 +67,7 @@ function AdminContent() {
           <Text className="text-sm text-muted">
             {t("attendee.ux.greeting")}
           </Text>
-          <Text className="text-lg font-extrabold text-ink" numberOfLines={1}>
+          <Text className="text-lg font-semibold text-ink" numberOfLines={1}>
             {user.display_name || t("ui.platformOperations")}
           </Text>
         </View>

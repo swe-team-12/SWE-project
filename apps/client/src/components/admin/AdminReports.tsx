@@ -85,7 +85,7 @@ export function AdminReports({
   };
   return (
     <Surface className="gap-4">
-      <Text accessibilityRole="header" className="text-xl font-extrabold tracking-tight text-ink">
+      <Text accessibilityRole="header" className="text-xl font-semibold text-ink">
         {t("adminX.reports.title")}
       </Text>
       <Meta>{t("adminX.reports.help")}</Meta>
@@ -167,7 +167,7 @@ export function AdminReports({
             ) : null
           }
         >
-          <Text className="font-bold text-ink">
+          <Text className="font-medium text-ink">
             {t(`adminX.reportCategory.${item.category}`, {
               defaultValue: item.category,
             })}

@@ -85,8 +85,8 @@ export function ResendVerification({
             accessibilityRole="link"
             className="min-h-11 flex-row items-center justify-center gap-2 rounded-2xl border border-line bg-mintsoft px-3 active:opacity-80"
           >
-            <Icon name="sparkle" size={16} color={palette.brand} />
-            <Text className="text-center font-bold text-ink">
+            <Icon name="mail" size={16} color={palette.brand} />
+            <Text className="text-center font-medium text-ink">
               {t("attendee.auth.openDemoVerification")}
             </Text>
           </Pressable>

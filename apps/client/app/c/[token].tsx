@@ -56,7 +56,7 @@ export default function CampaignRedirect() {
   const reasonState = state === "active" ? "disabled" : state;
   return (
     <AuthCard
-      icon="sparkle"
+      icon="qr"
       kicker={campaign.name || undefined}
       title={t("attendee.campaign.inactiveTitle")}
     >
@@ -89,7 +89,7 @@ export default function CampaignRedirect() {
           accessibilityRole="link"
           className="min-h-14 flex-row items-center justify-center gap-2 rounded-2xl bg-mint px-6 active:opacity-80"
         >
-          <Text className="text-base font-bold text-ink">
+          <Text className="text-base font-medium text-ink">
             {t("common.viewEvent")}
           </Text>
           <Icon name="arrow-right" size={18} />

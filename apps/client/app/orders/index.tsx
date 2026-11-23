@@ -48,15 +48,15 @@ function OrdersContent() {
           return (
             <Surface key={order.id} className="min-w-72 flex-1 basis-96 gap-4">
               <View className="flex-row flex-wrap items-center justify-between gap-2">
-                <View className="flex-row items-center gap-2 rounded-full bg-canvas px-3 py-1">
+                <View className="flex-row items-center gap-2 rounded-lg bg-canvas px-3 py-1">
                   <Icon name="receipt" size={14} color={palette.muted} />
-                  <Text className="font-mono text-xs font-bold text-ink">
+                  <Text className="font-mono text-xs font-medium text-ink">
                     {order.order_number}
                   </Text>
                 </View>
                 <StatusBadge status={order.status} />
               </View>
-              <Text className="text-2xl font-extrabold leading-tight tracking-tight text-ink">
+              <Text className="text-2xl font-semibold leading-tight tracking-tight text-ink">
                 {order.event_title ?? t("attendee.orders.unknownEvent")}
               </Text>
               <View className="gap-2">
@@ -110,7 +110,7 @@ function OrdersContent() {
                   <Text className="text-xs text-muted">
                     {t("attendee.orders.total")}
                   </Text>
-                  <Text className="text-2xl font-extrabold tracking-tight text-ink">
+                  <Text className="text-2xl font-semibold tracking-tight text-ink">
                     {formatKzt(order.total_tiyin, i18n.language)}
                   </Text>
                 </View>
@@ -122,7 +122,7 @@ function OrdersContent() {
                     })}
                     className="min-h-12 flex-row items-center justify-center gap-2 rounded-2xl bg-ink px-5 active:opacity-80"
                   >
-                    <Text className="font-bold text-white">
+                    <Text className="font-medium text-white">
                       {t("attendee.orders.viewOrder")}
                     </Text>
                     <Icon name="arrow-right" size={18} color={palette.white} />
@@ -144,7 +144,7 @@ function OrdersContent() {
               accessibilityRole="link"
               className="min-h-12 justify-center rounded-2xl bg-mint px-5 active:opacity-80"
             >
-              <Text className="font-bold text-ink">
+              <Text className="font-medium text-ink">
                 {t("attendee.browseEvents")}
               </Text>
             </Pressable>

@@ -255,7 +255,7 @@ export function AdminSearch({
     : 0;
   return (
     <Surface className="gap-4">
-      <Text accessibilityRole="header" className="text-xl font-extrabold tracking-tight text-ink">
+      <Text accessibilityRole="header" className="text-xl font-semibold text-ink">
         {t("ui.searchPlatform")}
       </Text>
       <Meta>{t("adminX.search.help")}</Meta>
@@ -291,7 +291,7 @@ export function AdminSearch({
       )}
       {data && data.users.length > 0 ? (
         <View>
-          <Text accessibilityRole="header" className="text-lg font-extrabold tracking-tight text-ink">
+          <Text accessibilityRole="header" className="text-lg font-semibold text-ink">
             {t("adminX.search.users", { count: data.users.length })}
           </Text>
           {data.users.map((item) => (
@@ -331,7 +331,7 @@ export function AdminSearch({
               }
               below={confirmFor(item.id)}
             >
-              <Text className="font-bold text-ink">{item.display_name}</Text>
+              <Text className="font-medium text-ink">{item.display_name}</Text>
               <Meta>{item.email}</Meta>
               <Meta>
                 {(item.roles ?? [])
@@ -354,7 +354,7 @@ export function AdminSearch({
       ) : null}
       {data && data.events.length > 0 ? (
         <View>
-          <Text accessibilityRole="header" className="text-lg font-extrabold tracking-tight text-ink">
+          <Text accessibilityRole="header" className="text-lg font-semibold text-ink">
             {t("adminX.search.events", { count: data.events.length })}
           </Text>
           {data.events.map((item) => {
@@ -466,7 +466,7 @@ export function AdminSearch({
       ) : null}
       {data && data.orders.length > 0 ? (
         <View>
-          <Text accessibilityRole="header" className="text-lg font-extrabold tracking-tight text-ink">
+          <Text accessibilityRole="header" className="text-lg font-semibold text-ink">
             {t("adminX.search.orders", { count: data.orders.length })}
           </Text>
           {data.orders.map((item) => (
@@ -484,7 +484,7 @@ export function AdminSearch({
                 </>
               }
             >
-              <Text className="font-mono font-bold text-ink">
+              <Text className="font-mono font-medium text-ink">
                 {item.number}
               </Text>
               <Meta>
@@ -518,7 +518,7 @@ export function AdminSearch({
       ) : null}
       {data && data.payments.length > 0 ? (
         <View>
-          <Text accessibilityRole="header" className="text-lg font-extrabold tracking-tight text-ink">
+          <Text accessibilityRole="header" className="text-lg font-semibold text-ink">
             {t("adminX.search.payments", { count: data.payments.length })}
           </Text>
           {data.payments.map((item) => (
@@ -536,7 +536,7 @@ export function AdminSearch({
                 </>
               }
             >
-              <Text className="font-mono font-bold text-ink">
+              <Text className="font-mono font-medium text-ink">
                 {item.reference}
               </Text>
               <Meta>

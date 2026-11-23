@@ -320,7 +320,7 @@ function SupportContent() {
                   accessibilityRole="link"
                   className="min-h-11 justify-center self-start"
                 >
-                  <Text className="font-bold text-brand underline">
+                  <Text className="font-medium text-brand underline">
                     {t("supportX.openCreated", {
                       number: created.case_number,
                     })}
@@ -363,7 +363,7 @@ function SupportContent() {
                 <Pressable
                   accessibilityRole="link"
                   accessibilityLabel={`${item.case_number}, ${item.subject}, ${t(`status.${item.status}`, { defaultValue: item.status })}${item.escalated ? `, ${t("supportX.escalated")}` : ""}`}
-                  className="gap-3 rounded-[28px] border border-line bg-white p-5 shadow-panel active:opacity-90"
+                  className="gap-3 rounded-3xl border border-line bg-white p-5 shadow-panel active:opacity-90"
                 >
                   <View className="flex-row items-start gap-3">
                     <View
@@ -374,11 +374,11 @@ function SupportContent() {
                       <Icon name="help" size={20} color={palette.brand} />
                     </View>
                     <View className="min-w-0 flex-1 gap-0.5">
-                      <Text className="font-mono text-xs font-bold text-brand">
+                      <Text className="font-mono text-xs font-medium text-brand">
                         {item.case_number}
                       </Text>
                       <Text
-                        className="text-lg font-extrabold tracking-tight text-ink"
+                        className="text-lg font-semibold text-ink"
                         numberOfLines={2}
                       >
                         {item.subject}

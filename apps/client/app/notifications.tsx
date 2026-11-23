@@ -118,7 +118,7 @@ function NotificationsContent() {
         return (
           <View
             key={item.id}
-            className={`gap-3 rounded-[28px] border bg-white p-5 shadow-panel ${unread ? "border-mint" : "border-line"}`}
+            className={`gap-3 rounded-3xl border bg-white p-5 shadow-panel ${unread ? "border-mint" : "border-line"}`}
           >
             <View className="flex-row items-start gap-3">
               <View
@@ -136,7 +136,7 @@ function NotificationsContent() {
                 <View className="flex-row items-start justify-between gap-3">
                   <Text
                     accessibilityRole="header"
-                    className="flex-1 text-lg font-extrabold leading-snug tracking-tight text-ink"
+                    className="flex-1 text-lg font-semibold leading-snug text-ink"
                   >
                     {message.title}
                   </Text>
@@ -147,7 +147,7 @@ function NotificationsContent() {
                         accessibilityElementsHidden
                         importantForAccessibility="no-hide-descendants"
                       />
-                      <Text className="text-xs font-extrabold uppercase tracking-wide text-ink">
+                      <Text className="text-xs font-semibold text-ink">
                         {t("ui.newBadge")}
                       </Text>
                     </View>
@@ -173,7 +173,7 @@ function NotificationsContent() {
                       onPress={markRead}
                       className="min-h-11 flex-row items-center gap-2 rounded-2xl bg-mint px-4 active:opacity-80"
                     >
-                      <Text className="font-bold text-ink">
+                      <Text className="font-medium text-ink">
                         {t(`notify.open.${target.kind}`)}
                       </Text>
                       <Icon name="arrow-right" size={16} color={palette.ink} />
@@ -197,7 +197,7 @@ function NotificationsContent() {
         );
       })}
       {query.data?.length === 0 ? (
-        <View className="items-center gap-3 rounded-[28px] border border-dashed border-line bg-white/60 px-4 py-10">
+        <View className="items-center gap-3 rounded-3xl border border-dashed border-line bg-white/60 px-4 py-10">
           <View className="h-12 w-12 items-center justify-center rounded-2xl bg-white">
             <Icon name="bell" size={22} color={palette.muted} />
           </View>

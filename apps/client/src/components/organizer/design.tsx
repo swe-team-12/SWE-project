@@ -49,7 +49,7 @@ export function HeroStats({
       {kicker ? (
         <View className="flex-row items-center gap-2">
           <View className="h-8 w-8 items-center justify-center rounded-xl bg-mint/15">
-            <Icon name="sparkle" size={16} color={palette.mint} />
+            <Icon name="calendar" size={16} color={palette.mint} />
           </View>
           <Text className="flex-1 text-sm font-semibold text-white/75">
             {kicker}
@@ -103,7 +103,7 @@ export function ProgressMeter({
           {label}
         </Text>
         <Text
-          className={`text-sm font-extrabold ${dark ? "text-white" : "text-ink"}`}
+          className={`text-sm font-semibold ${dark ? "text-white" : "text-ink"}`}
         >
           {valueText}
         </Text>
