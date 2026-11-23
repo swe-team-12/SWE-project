@@ -51,8 +51,8 @@ export function CoverSection({
         />
       ) : (
         <View className="h-28 w-44 items-center justify-center gap-2 rounded-3xl bg-night">
-          <Icon name="sparkle" size={20} color={palette.mint} />
-          <Text className="font-bold text-white">{t("ui.noCover")}</Text>
+          <Icon name="ticket" size={20} color={palette.mint} />
+          <Text className="font-medium text-white">{t("ui.noCover")}</Text>
         </View>
       )}
       <View className="min-w-60 flex-1 gap-2">

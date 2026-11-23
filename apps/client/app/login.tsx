@@ -57,7 +57,7 @@ export default function LoginPage() {
             className="min-h-11 flex-row items-center justify-center gap-2 rounded-2xl active:opacity-70"
           >
             <Icon name="mail" size={16} color={palette.brand} />
-            <Text className="text-center font-bold text-brand">
+            <Text className="text-center font-medium text-brand">
               {t("attendee.auth.noVerificationEmail")}
             </Text>
           </Pressable>
@@ -123,7 +123,7 @@ export default function LoginPage() {
         />
         <Link href="/forgot-password" asChild>
           <Pressable className="min-h-11 items-center justify-center rounded-2xl active:opacity-70">
-            <Text className="font-bold text-brand underline">
+            <Text className="font-medium text-brand underline">
               {t("ui.forgotPassword")}
             </Text>
           </Pressable>
@@ -131,7 +131,7 @@ export default function LoginPage() {
         <Link href="/register" asChild>
           <Pressable className="min-h-12 flex-row items-center justify-center gap-2 rounded-2xl border border-line bg-canvas px-5 active:opacity-80">
             <Icon name="user" size={18} />
-            <Text className="font-bold text-ink">
+            <Text className="font-medium text-ink">
               {t("common.createAccount")}
             </Text>
           </Pressable>

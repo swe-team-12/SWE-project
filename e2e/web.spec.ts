@@ -8,7 +8,7 @@ test("discovers an event and keeps the public journey responsive", async ({
     page.getByText("BiletFlow", { exact: true }).first(),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "Events worth showing up for." }),
+    page.getByRole("heading", { name: "Events worth showing up for" }),
   ).toBeVisible();
   await expect(
     page.getByRole("link", { name: "View event" }).first(),
@@ -25,7 +25,7 @@ test("switches every application label to Russian without reloading", async ({
   await page.goto("/");
   await page.getByRole("button", { name: "ru" }).click();
   await expect(
-    page.getByRole("heading", { name: "События, на которые хочется прийти." }),
+    page.getByRole("heading", { name: "События, на которые хочется прийти" }),
   ).toBeVisible();
   await expect(page.getByText("Афиша", { exact: true }).first()).toBeVisible();
   await expect(
@@ -66,7 +66,7 @@ test("selects an assigned seat through both map and accessible list", async ({
     .fill(process.env.BILETFLOW_DEMO_PASSWORD ?? "BiletFlowDemo123");
   await page.getByRole("button", { name: "Sign in" }).click();
   await expect(
-    page.getByRole("heading", { name: "Events worth showing up for." }),
+    page.getByRole("heading", { name: "Events worth showing up for" }),
   ).toBeVisible();
   await page.getByRole("link", { name: "View event" }).first().click();
   await page.getByRole("link", { name: "Choose tickets" }).click();

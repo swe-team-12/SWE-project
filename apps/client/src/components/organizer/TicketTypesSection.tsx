@@ -322,12 +322,12 @@ export function TicketTypesSection({
               <View className="flex-row flex-wrap items-start justify-between gap-3">
                 <View className="min-w-52 flex-1 gap-1">
                   <View className="flex-row flex-wrap items-center justify-between gap-2">
-                    <Text className="text-lg font-extrabold tracking-tight text-ink">
+                    <Text className="text-lg font-semibold text-ink">
                       {item.name}
                     </Text>
                     <Text
                       accessibilityLabel={`${t("organizer.tickets.price")}: ${item.price_tiyin === 0 ? t("common.free") : formatKzt(item.price_tiyin, i18n.language)}`}
-                      className="text-xl font-extrabold tracking-tight text-ink"
+                      className="text-xl font-semibold text-ink"
                     >
                       {item.price_tiyin === 0
                         ? t("common.free")

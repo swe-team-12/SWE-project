@@ -47,7 +47,7 @@ export function SectionTitle({ children }: PropsWithChildren) {
   return (
     <Text
       accessibilityRole="header"
-      className="text-xl font-extrabold tracking-tight text-ink"
+      className="text-xl font-semibold text-ink"
     >
       {children}
     </Text>
@@ -73,7 +73,7 @@ export function PermissionNotice({ message }: { message?: string }) {
       <View className="min-w-0 flex-1 gap-1">
         <Text
           accessibilityRole="header"
-          className="text-lg font-extrabold tracking-tight text-ink"
+          className="text-lg font-semibold text-ink"
         >
           {t("organizer.access.deniedTitle")}
         </Text>
@@ -90,9 +90,9 @@ export function DemoNotice({ children }: PropsWithChildren) {
   const { t } = useTranslation();
   return (
     <View className="flex-row items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-3">
-      <Icon name="sparkle" size={18} color={palette.warning} />
+      <Icon name="alert" size={18} color={palette.warning} />
       <View className="min-w-0 flex-1">
-        <Text className="font-bold text-ink">{t("common.demo")}</Text>
+        <Text className="font-medium text-ink">{t("common.demo")}</Text>
         {children ? (
           <Text className="mt-1 text-sm leading-5 text-ink">{children}</Text>
         ) : null}
@@ -213,7 +213,7 @@ export function Badge({
   const style = TONES[tone ?? toneOf(status)];
   return (
     <View
-      className={`flex-row items-center gap-1 self-start rounded-full border px-3 py-1 ${onDark ? style.darkBox : style.box}`}
+      className={`flex-row items-center gap-1 self-start rounded-lg border px-3 py-1 ${onDark ? style.darkBox : style.box}`}
     >
       {style.icon ? (
         <Icon
@@ -223,7 +223,7 @@ export function Badge({
         />
       ) : null}
       <Text
-        className={`text-xs font-bold uppercase tracking-wide ${onDark ? style.darkText : style.text}`}
+        className={`text-xs font-medium ${onDark ? style.darkText : style.text}`}
       >
         {label ?? statusLabel(status)}
       </Text>
@@ -251,7 +251,7 @@ export function ChoiceGroup<T extends string>({
 }) {
   return (
     <View className="gap-2">
-      <Text className="text-sm font-bold text-ink">{label}</Text>
+      <Text className="text-sm font-medium text-ink">{label}</Text>
       <View
         accessibilityRole="radiogroup"
         accessibilityLabel={label}
@@ -277,7 +277,7 @@ export function ChoiceGroup<T extends string>({
                 {selected ? <View className="h-1.5 w-1.5 rounded-full bg-ink" /> : null}
               </View>
               <Text
-                className={`shrink font-bold ${selected ? "text-white" : "text-ink"}`}
+                className={`shrink font-medium ${selected ? "text-white" : "text-ink"}`}
               >
                 {option.label}
               </Text>
@@ -339,7 +339,7 @@ export function MultiChoice({
 }) {
   return (
     <View className="gap-1">
-      <Text className="text-sm font-bold text-ink">{label}</Text>
+      <Text className="text-sm font-medium text-ink">{label}</Text>
       {hint ? <Text className="text-xs text-muted">{hint}</Text> : null}
       {options.map((option) => {
         const checked = values.includes(option.value);
@@ -418,7 +418,7 @@ export function ConfirmButton({
         >
           <Icon name="alert" size={18} color={palette.danger} />
         </View>
-        <Text className="flex-1 font-bold text-ink">{label}</Text>
+        <Text className="flex-1 font-medium text-ink">{label}</Text>
       </View>
       <Text className="text-sm leading-5 text-muted">{message}</Text>
       {reason ? (
@@ -552,7 +552,7 @@ export function Tabs<T extends string>({
               className={`min-h-11 items-center justify-center rounded-xl px-4 ${selected ? "bg-ink" : "bg-transparent active:bg-white"}`}
             >
               <Text
-                className={`${selected ? "font-extrabold text-white" : "font-bold text-muted"}`}
+                className={`${selected ? "font-semibold text-white" : "font-medium text-muted"}`}
                 numberOfLines={1}
               >
                 {tab.label}

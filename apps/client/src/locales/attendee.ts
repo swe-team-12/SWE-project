@@ -105,7 +105,7 @@ export const en = {
       detailKicker: "Order details",
       confirmationKicker: "Order confirmation",
       orderNumber: "Order {{number}}",
-      confirmedTitle: "You are going!",
+      confirmedTitle: "You are going",
       confirmedBody:
         "Your order is confirmed. Tickets issued: {{count}}. They are in your wallet and were sent to your email.",
       eventSection: "Event",
@@ -192,7 +192,7 @@ export const en = {
     },
     ux: {
       back: "Back",
-      greeting: "Welcome back,",
+      greeting: "Account",
       welcomeGuest: "Welcome to BiletFlow",
       guestTagline: "Find your next event",
       filters: "Date filters",
@@ -327,7 +327,7 @@ export const ru = {
       detailKicker: "Детали заказа",
       confirmationKicker: "Подтверждение заказа",
       orderNumber: "Заказ {{number}}",
-      confirmedTitle: "Вы идёте!",
+      confirmedTitle: "Вы идёте",
       confirmedBody:
         "Заказ подтверждён. Выпущено билетов: {{count}}. Они в вашем кошельке и отправлены на email.",
       eventSection: "Событие",
@@ -413,7 +413,7 @@ export const ru = {
     },
     ux: {
       back: "Назад",
-      greeting: "С возвращением,",
+      greeting: "Аккаунт",
       welcomeGuest: "Добро пожаловать в BiletFlow",
       guestTagline: "Найдите своё следующее событие",
       filters: "Фильтр по датам",
@@ -548,7 +548,7 @@ export const kk = {
       detailKicker: "Тапсырыс мәліметтері",
       confirmationKicker: "Тапсырыс растауы",
       orderNumber: "Тапсырыс {{number}}",
-      confirmedTitle: "Сіз барасыз!",
+      confirmedTitle: "Сіз барасыз",
       confirmedBody:
         "Тапсырыс расталды. Шығарылған билет саны: {{count}}. Олар әмияныңызда және email мекенжайыңызға жіберілді.",
       eventSection: "Іс-шара",
@@ -634,7 +634,7 @@ export const kk = {
     },
     ux: {
       back: "Артқа",
-      greeting: "Қайта қош келдіңіз,",
+      greeting: "Аккаунт",
       welcomeGuest: "BiletFlow-ға қош келдіңіз",
       guestTagline: "Келесі іс-шараңызды табыңыз",
       filters: "Күн бойынша сүзгі",

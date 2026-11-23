@@ -66,7 +66,7 @@ function OrganizerDashboardContent() {
             importantForAccessibility="no-hide-descendants"
           >
             {firstName ? (
-              <Text className="text-lg font-extrabold text-mint">
+              <Text className="text-lg font-semibold text-mint">
                 {firstName.slice(0, 1).toUpperCase()}
               </Text>
             ) : (
@@ -77,7 +77,7 @@ function OrganizerDashboardContent() {
             <Text className="text-sm text-muted">
               {t("attendee.ux.greeting")}
             </Text>
-            <Text className="text-lg font-extrabold text-ink" numberOfLines={1}>
+            <Text className="text-lg font-semibold text-ink" numberOfLines={1}>
               {user.display_name}
             </Text>
           </View>
@@ -96,7 +96,7 @@ function OrganizerDashboardContent() {
           </Text>
           <Text
             accessibilityRole="header"
-            className="text-4xl font-extrabold leading-tight tracking-tight text-ink md:text-5xl"
+            className="text-4xl font-semibold leading-tight tracking-tight text-ink md:text-5xl"
           >
             {t("ui.eventsOperations")}
           </Text>
@@ -108,7 +108,7 @@ function OrganizerDashboardContent() {
               className="min-h-12 flex-row items-center justify-center gap-2 rounded-2xl bg-mint px-5 active:opacity-80"
             >
               <Icon name="plus" size={18} color={palette.ink} />
-              <Text className="font-bold text-ink">
+              <Text className="font-medium text-ink">
                 {t("ui.createEvent")}
               </Text>
             </Pressable>
@@ -186,9 +186,9 @@ function OrganizerDashboardContent() {
       {isOrganizer && events.data?.length === 0 ? (
         <DarkCard className="items-start gap-4">
           <View className="h-12 w-12 items-center justify-center rounded-2xl bg-mint/15">
-            <Icon name="sparkle" size={22} color={palette.mint} />
+            <Icon name="plus" size={22} color={palette.mint} />
           </View>
-          <Text className="text-2xl font-extrabold tracking-tight text-white">
+          <Text className="text-2xl font-semibold tracking-tight text-white">
             {t("ui.firstEvent")}
           </Text>
           <Text className="leading-6 text-white/75">

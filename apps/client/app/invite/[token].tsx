@@ -31,7 +31,7 @@ function InvitationContent() {
     >
       <View className="flex-row items-center gap-3 rounded-2xl bg-canvas p-4">
         <Icon name="user" size={18} color={palette.brand} />
-        <Text className="flex-1 font-bold text-ink">{user.email}</Text>
+        <Text className="flex-1 font-medium text-ink">{user.email}</Text>
       </View>
       <Button
         label={t("ui.acceptInvitation")}

@@ -226,13 +226,13 @@ function SupportDetailContent() {
         />
         <View
           accessibilityLiveRegion="polite"
-          className={`flex-row items-center gap-2 self-start rounded-full border px-3 py-1.5 ${liveOn ? "border-mintsoft bg-mintsoft" : "border-amber-200 bg-amber-50"}`}
+          className={`flex-row items-center gap-2 self-start rounded-lg border px-3 py-1.5 ${liveOn ? "border-mintsoft bg-mintsoft" : "border-amber-200 bg-amber-50"}`}
         >
           <View
             className={`h-2 w-2 rounded-full ${liveOn ? "bg-brand" : "border border-warning bg-transparent"}`}
           />
           <Text
-            className={`text-xs font-bold ${liveOn ? "text-success" : "text-warning"}`}
+            className={`text-xs font-medium ${liveOn ? "text-success" : "text-warning"}`}
           >
             {t(`supportX.live.${live}`)}
           </Text>
@@ -441,11 +441,11 @@ function SupportDetailContent() {
                 <View
                   className={`flex-row flex-wrap items-center gap-2 px-1 ${mine ? "justify-end" : ""}`}
                 >
-                  <Text className="text-xs font-bold text-ink">{sender}</Text>
+                  <Text className="text-xs font-medium text-ink">{sender}</Text>
                   {staffLabel ? (
-                    <View className="flex-row items-center gap-1 rounded-full border border-ink/10 bg-mintsoft px-2 py-0.5">
+                    <View className="flex-row items-center gap-1 rounded-lg border border-ink/10 bg-mintsoft px-2 py-0.5">
                       <Icon name="check" size={11} color={palette.brand} />
-                      <Text className="text-[11px] font-bold text-ink">
+                      <Text className="text-[11px] font-medium text-ink">
                         {staffLabel}
                       </Text>
                     </View>
@@ -493,7 +493,7 @@ function SupportDetailContent() {
           />
         ) : null}
       </ScrollView>
-      <View className="mx-auto w-full max-w-4xl gap-2 rounded-t-[28px] border border-b-0 border-line bg-white px-4 pb-4 pt-3 shadow-float md:mb-2 md:rounded-[28px] md:border-b">
+      <View className="mx-auto w-full max-w-4xl gap-2 rounded-t-3xl border border-b-0 border-line bg-white px-4 pb-4 pt-3 shadow-float md:mb-2 md:rounded-3xl md:border-b">
         {attachmentError ? (
           <Notice tone="danger">{attachmentError}</Notice>
         ) : null}
@@ -521,9 +521,9 @@ function SupportDetailContent() {
           </View>
         ) : null}
         {attachment ? (
-          <View className="flex-row items-center gap-2 self-start rounded-full border border-line bg-canvas py-1 pl-3 pr-1">
+          <View className="flex-row items-center gap-2 self-start rounded-lg border border-line bg-canvas py-1 pl-3 pr-1">
             <Icon name="receipt" size={14} color={palette.ink} />
-            <Text className="shrink text-sm font-bold text-ink" numberOfLines={1}>
+            <Text className="shrink text-sm font-medium text-ink" numberOfLines={1}>
               {attachment.name}
             </Text>
             <Pressable

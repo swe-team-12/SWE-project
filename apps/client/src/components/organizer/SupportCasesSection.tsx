@@ -79,7 +79,7 @@ export function SupportCasesSection({ eventId }: { eventId: string }) {
             className="flex-row flex-wrap items-start justify-between gap-3 rounded-2xl border border-line bg-white p-4 active:opacity-80"
           >
             <View className="min-w-60 flex-1 gap-1">
-              <Text className="font-bold text-ink">
+              <Text className="font-medium text-ink">
                 {item.case_number} · {item.subject}
               </Text>
               <Fact

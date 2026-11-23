@@ -73,7 +73,7 @@ export function Chips<T extends string>({
 }) {
   return (
     <View className="gap-2">
-      <Text className="text-sm font-bold text-ink">{label}</Text>
+      <Text className="text-sm font-medium text-ink">{label}</Text>
       <View
         accessibilityRole="radiogroup"
         accessibilityLabel={label}
@@ -94,7 +94,7 @@ export function Chips<T extends string>({
                 <Icon name="check" size={14} color={palette.mint} />
               ) : null}
               <Text
-                className={`shrink text-sm ${selected ? "font-extrabold text-white" : "font-semibold text-ink"}`}
+                className={`shrink text-sm ${selected ? "font-semibold text-white" : "font-semibold text-ink"}`}
               >
                 {option.label}
               </Text>
@@ -145,7 +145,7 @@ export function ConfirmPanel({
           />
         </View>
         <View className="min-w-0 flex-1 gap-1">
-          <Text className="font-extrabold text-ink">{title}</Text>
+          <Text className="font-semibold text-ink">{title}</Text>
           {message ? (
             <Text className="text-sm leading-5 text-muted">{message}</Text>
           ) : null}
@@ -153,7 +153,7 @@ export function ConfirmPanel({
       </View>
       {children}
       {error ? (
-        <Text accessibilityRole="alert" className="font-bold text-danger">
+        <Text accessibilityRole="alert" className="font-medium text-danger">
           {error}
         </Text>
       ) : null}
@@ -218,7 +218,7 @@ export function TextLink({
         accessibilityLabel={accessibilityLabel ?? label}
         className="min-h-8 justify-center self-start"
       >
-        <Text className="font-bold text-brand underline">{label}</Text>
+        <Text className="font-medium text-brand underline">{label}</Text>
       </Pressable>
     </Link>
   );
@@ -249,9 +249,9 @@ export function Row({
 export function EscalatedChip() {
   const { t } = useTranslation();
   return (
-    <View className="flex-row items-center gap-1.5 self-start rounded-full border border-red-100 bg-red-50 px-3 py-1">
+    <View className="flex-row items-center gap-1.5 self-start rounded-lg border border-red-100 bg-red-50 px-3 py-1">
       <Icon name="alert" size={13} color={palette.danger} />
-      <Text className="text-xs font-bold uppercase tracking-wide text-danger">
+      <Text className="text-xs font-medium text-danger">
         {t("supportX.escalated")}
       </Text>
     </View>

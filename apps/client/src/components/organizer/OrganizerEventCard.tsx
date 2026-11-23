@@ -52,7 +52,7 @@ export function OrganizerEventCard({
       <Pressable
         accessibilityRole="link"
         accessibilityLabel={`${event.title}, ${t(`status.${event.status}`)}`}
-        className="min-w-72 flex-1 basis-80 gap-5 overflow-hidden rounded-[28px] bg-night p-0 shadow-float active:opacity-90"
+        className="min-w-72 flex-1 basis-80 gap-5 overflow-hidden rounded-3xl bg-night p-0 shadow-float active:opacity-90"
       >
         <View className="gap-5 p-5 pb-0">
           <View className="flex-row flex-wrap items-center justify-between gap-2">
@@ -67,16 +67,16 @@ export function OrganizerEventCard({
               ) : null}
             </View>
             {staffEvent ? (
-              <View className="flex-row items-center gap-1 rounded-full border border-white/20 px-3 py-1">
+              <View className="flex-row items-center gap-1 rounded-lg border border-white/20 px-3 py-1">
                 <Icon name="user" size={12} color={palette.white} />
-                <Text className="text-xs font-bold text-white">
+                <Text className="text-xs font-medium text-white">
                   {t("organizerUi.staffChip")}
                 </Text>
               </View>
             ) : null}
           </View>
           <Text
-            className="text-2xl font-extrabold leading-tight tracking-tight text-white"
+            className="text-2xl font-semibold leading-tight tracking-tight text-white"
             numberOfLines={2}
           >
             {event.title}
@@ -136,7 +136,7 @@ export function OrganizerEventCard({
             accessibilityElementsHidden
             importantForAccessibility="no-hide-descendants"
           >
-            <Text className="font-bold text-ink">{t("organizerUi.manage")}</Text>
+            <Text className="font-medium text-ink">{t("organizerUi.manage")}</Text>
             <Icon name="arrow-right" size={16} color={palette.ink} />
           </View>
         </View>

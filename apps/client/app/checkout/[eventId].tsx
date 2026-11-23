@@ -114,12 +114,12 @@ function MoneyRow({
 }) {
   return (
     <View className="flex-row justify-between gap-3">
-      <Text className={strong ? "text-lg font-black text-ink" : "text-muted"}>
+      <Text className={strong ? "text-lg font-semibold text-ink" : "text-muted"}>
         {label}
       </Text>
       <Text
         className={
-          strong ? "text-2xl font-black text-ink" : "font-bold text-ink"
+          strong ? "text-2xl font-semibold text-ink" : "font-medium text-ink"
         }
       >
         {value}
@@ -396,7 +396,7 @@ function CheckoutContent() {
     <Text
       role="alert"
       accessibilityLiveRegion="assertive"
-      className={`w-full rounded-2xl p-3 ${notice.tone === "info" ? "bg-mintsoft font-bold text-success" : "bg-red-50 text-danger"}`}
+      className={`w-full rounded-2xl p-3 ${notice.tone === "info" ? "bg-mintsoft font-medium text-success" : "bg-red-50 text-danger"}`}
     >
       {"key" in notice ? t(notice.key, notice.values) : notice.text}
     </Text>
@@ -448,10 +448,10 @@ function CheckoutContent() {
               <DarkCard className="gap-5">
                 <View className="flex-row flex-wrap items-center justify-between gap-3">
                   <View className="min-w-0 flex-1 gap-1">
-                    <Text className="text-sm font-bold uppercase tracking-wide text-mint">
+                    <Text className="text-sm font-medium text-mint">
                       {t("ui.inventoryReserved")}
                     </Text>
-                    <Text className="text-2xl font-extrabold tracking-tight text-white">
+                    <Text className="text-2xl font-semibold tracking-tight text-white">
                       {t("ui.completeDemoPayment")}
                     </Text>
                   </View>
@@ -459,7 +459,7 @@ function CheckoutContent() {
                     <Icon name="clock" size={18} color={palette.mint} />
                     <View>
                       <Text
-                        className="text-lg font-extrabold text-white"
+                        className="text-lg font-semibold text-white"
                         accessibilityLabel={t("checkout.holdRemainingLabel", {
                           minutes: Math.floor(secondsLeft / 60),
                           seconds: secondsLeft % 60,
@@ -513,7 +513,7 @@ function CheckoutContent() {
                 </View>
                 {activeSession.total_tiyin ? (
                   <View className="gap-1 rounded-2xl border border-amber-200/40 bg-amber-400/10 p-4">
-                    <Text className="font-extrabold text-white">
+                    <Text className="font-semibold text-white">
                       {t("checkout.simulationTitle")}
                     </Text>
                     <Text className="text-sm text-white/75">
@@ -552,7 +552,7 @@ function CheckoutContent() {
                     className="gap-3 rounded-2xl border border-red-200 bg-white p-4"
                     accessibilityRole="alert"
                   >
-                    <Text className="font-bold text-ink">
+                    <Text className="font-medium text-ink">
                       {t("checkout.releaseConfirmTitle")}
                     </Text>
                     <Text className="text-sm text-muted">
@@ -588,7 +588,7 @@ function CheckoutContent() {
               </DarkCard>
             ) : unverified ? (
               <Surface className="gap-4 border-amber-200 bg-amber-50">
-                <Text className="text-xl font-extrabold text-ink">
+                <Text className="text-xl font-semibold text-ink">
                   {t("checkout.verifyTitle")}
                 </Text>
                 <Text className="text-ink">
@@ -603,7 +603,7 @@ function CheckoutContent() {
               </Surface>
             ) : salesState !== "open" ? (
               <Surface className="gap-3 border-amber-200 bg-amber-50">
-                <Text className="text-xl font-extrabold text-ink">
+                <Text className="text-xl font-semibold text-ink">
                   {t("checkout.unavailableTitle")}
                 </Text>
                 <Text className="text-ink">
@@ -658,7 +658,7 @@ function CheckoutContent() {
                     )}
                     {picks.length ? (
                       <View className="gap-2">
-                        <Text className="font-extrabold text-ink">
+                        <Text className="font-semibold text-ink">
                           {t("checkout.selectedSeats")}
                         </Text>
                         {picks.map((pick) => {
@@ -675,13 +675,13 @@ function CheckoutContent() {
                               <View className="flex-row flex-wrap items-center justify-between gap-2">
                                 <View className="min-w-40 flex-1 flex-row items-center gap-3">
                                   <View className="h-11 w-11 flex-row items-center justify-center rounded-xl bg-ink">
-                                    <Text className="font-extrabold text-white">
+                                    <Text className="font-semibold text-white">
                                       {seat?.number}
                                     </Text>
                                     <View className="absolute bottom-2 right-1 top-2 w-1 rounded-full bg-mint" />
                                   </View>
                                   <View className="min-w-0 flex-1">
-                                    <Text className="font-bold text-ink">
+                                    <Text className="font-medium text-ink">
                                       {seatText(seat)}
                                     </Text>
                                     <Text className="text-sm text-muted">
@@ -714,7 +714,7 @@ function CheckoutContent() {
                                     size={16}
                                     color={palette.danger}
                                   />
-                                  <Text className="font-bold text-danger">
+                                  <Text className="font-medium text-danger">
                                     {t("checkout.remove")}
                                   </Text>
                                 </Pressable>
@@ -760,12 +760,14 @@ function CheckoutContent() {
                                             ),
                                           )
                                         }
-                                        className={`min-h-11 justify-center rounded-full border px-4 ${checked ? "border-ink bg-ink" : "border-line bg-white"} ${blocked ? "opacity-40" : ""}`}
+                                        className={`min-h-11 flex-row items-center gap-1.5 rounded-xl border px-4 ${checked ? "border-ink bg-ink" : "border-line bg-white"} ${blocked ? "opacity-40" : ""}`}
                                       >
+                                        {checked ? (
+                                          <Icon name="check" size={16} color={palette.mint} />
+                                        ) : null}
                                         <Text
-                                          className={`font-bold ${checked ? "text-white" : "text-ink"}`}
+                                          className={`font-medium ${checked ? "text-white" : "text-ink"}`}
                                         >
-                                          {checked ? "✓ " : ""}
                                           {option.name}
                                         </Text>
                                       </Pressable>
@@ -822,7 +824,7 @@ function CheckoutContent() {
                                   })}
                                 </Text>
                                 {stateText ? (
-                                  <Text className="rounded-2xl bg-amber-50 p-3 font-bold text-ink">
+                                  <Text className="rounded-2xl bg-amber-50 p-3 font-medium text-ink">
                                     {stateText}
                                   </Text>
                                 ) : (
@@ -845,7 +847,7 @@ function CheckoutContent() {
                                       }
                                     />
                                     <Text
-                                      className={`min-w-10 text-center text-2xl font-extrabold ${on ? "text-white" : "text-ink"}`}
+                                      className={`min-w-10 text-center text-2xl font-semibold ${on ? "text-white" : "text-ink"}`}
                                       accessibilityLiveRegion="polite"
                                       accessibilityLabel={t(
                                         "checkout.quantityOf",
@@ -931,7 +933,7 @@ function CheckoutContent() {
                           {sameForAll ? <Icon name="check" size={12} /> : null}
                         </View>
                       </View>
-                      <Text className="flex-1 font-bold text-ink">
+                      <Text className="flex-1 font-medium text-ink">
                         {t("checkout.sameForAll")}
                       </Text>
                     </Pressable>
@@ -952,7 +954,7 @@ function CheckoutContent() {
                             key={slot.key}
                             className="gap-3 rounded-3xl border border-line bg-canvas p-4"
                           >
-                            <Text className="font-extrabold text-ink">
+                            <Text className="font-semibold text-ink">
                               {title}
                             </Text>
                             <Field
@@ -994,7 +996,7 @@ function CheckoutContent() {
                     value={promo}
                     onChangeText={(value) => setPromo(value.toUpperCase())}
                     autoCapitalize="characters"
-                    icon="sparkle"
+                    icon="ticket"
                   />
                 </Surface>
               </>
@@ -1007,7 +1009,7 @@ function CheckoutContent() {
               </View>
               <Text
                 accessibilityRole="header"
-                className="flex-1 text-lg font-extrabold text-ink"
+                className="flex-1 text-lg font-semibold text-ink"
               >
                 {t("checkout.orderSummary")}
               </Text>
@@ -1025,10 +1027,10 @@ function CheckoutContent() {
                 {summaryLines.map(({ type, count }) => (
                   <View key={type.id} className="gap-1">
                     <View className="flex-row justify-between gap-3">
-                      <Text className="flex-1 font-bold text-ink">
+                      <Text className="flex-1 font-medium text-ink">
                         {count} × {type.name}
                       </Text>
-                      <Text className="font-bold text-ink">
+                      <Text className="font-medium text-ink">
                         {formatKzt(type.price_tiyin * count, i18n.language)}
                       </Text>
                     </View>
@@ -1057,7 +1059,7 @@ function CheckoutContent() {
             {promo ? (
               <Chip
                 label={`${t("ui.promoOptional")}: ${promo}`}
-                icon="sparkle"
+                icon="ticket"
                 tone="mint"
               />
             ) : null}
@@ -1087,7 +1089,7 @@ function CheckoutContent() {
           {noticeBlock}
           <View className="min-w-0 flex-1 basis-40">
             <Text
-              className="text-3xl font-extrabold tracking-tight text-ink"
+              className="text-3xl font-semibold tracking-tight text-ink"
               accessibilityLabel={`${activeSession ? t("ui.yourTotal") : t("checkout.estimatedSubtotal")}: ${formatKzt(activeSession ? activeSession.total_tiyin : subtotal, i18n.language)}`}
             >
               {formatKzt(
@@ -1148,11 +1150,11 @@ function StepTitle({ number, title }: { number: number; title: string }) {
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"
       >
-        <Text className="font-extrabold text-mint">{number}</Text>
+        <Text className="font-semibold text-mint">{number}</Text>
       </View>
       <Text
         accessibilityRole="header"
-        className="flex-1 text-xl font-extrabold tracking-tight text-ink"
+        className="flex-1 text-xl font-semibold text-ink"
       >
         {number}. {title}
       </Text>

@@ -121,7 +121,7 @@ export default function DiscoverPage() {
             importantForAccessibility="no-hide-descendants"
           >
             {firstName ? (
-              <Text className="text-lg font-extrabold text-mint">
+              <Text className="text-lg font-semibold text-mint">
                 {firstName.slice(0, 1).toUpperCase()}
               </Text>
             ) : (
@@ -133,7 +133,7 @@ export default function DiscoverPage() {
               {user ? t("attendee.ux.greeting") : t("attendee.ux.welcomeGuest")}
             </Text>
             <Text
-              className="text-lg font-extrabold text-ink"
+              className="text-lg font-semibold text-ink"
               numberOfLines={1}
             >
               {user ? user.display_name : t("attendee.ux.guestTagline")}
@@ -152,7 +152,7 @@ export default function DiscoverPage() {
       <View className="gap-2">
         <Text
           accessibilityRole="header"
-          className="max-w-3xl text-4xl font-extrabold leading-tight tracking-tight text-ink md:text-6xl"
+          className="max-w-3xl text-4xl font-semibold leading-tight tracking-tight text-ink md:text-6xl"
         >
           {t("ui.heroTitle")}
         </Text>
@@ -185,7 +185,7 @@ export default function DiscoverPage() {
               color={filtersOpen ? palette.white : palette.ink}
             />
             <Text
-              className={`font-bold ${filtersOpen ? "text-white" : "text-ink"}`}
+              className={`font-medium ${filtersOpen ? "text-white" : "text-ink"}`}
             >
               {t("attendee.ux.filters")}
             </Text>
@@ -309,8 +309,8 @@ export default function DiscoverPage() {
           />
         ) : null}
         <View className="flex-row flex-wrap gap-5">
-          {query.data?.map((event) => (
-            <EventCard event={event} key={event.id} />
+          {query.data?.map((event, index) => (
+            <EventCard event={event} featured={index === 0} key={event.id} />
           ))}
         </View>
         {query.data?.length === 0 ? (
@@ -358,18 +358,18 @@ function DayTile({
         className={`mb-1 h-1 w-6 rounded-full ${active ? "bg-mint" : "bg-transparent"}`}
       />
       <Text
-        className={`text-xs ${active ? "font-bold text-ink" : "text-muted"}`}
+        className={`text-xs ${active ? "font-medium text-ink" : "text-muted"}`}
         numberOfLines={1}
       >
         {top}
       </Text>
       <Text
-        className={`text-2xl font-extrabold ${active ? "text-ink" : "text-muted"}`}
+        className={`text-2xl font-semibold ${active ? "text-ink" : "text-muted"}`}
       >
         {big}
       </Text>
       <Text
-        className={`text-xs ${active ? "font-bold text-ink" : "text-muted"}`}
+        className={`text-xs ${active ? "font-medium text-ink" : "text-muted"}`}
         numberOfLines={1}
       >
         {bottom}
@@ -410,7 +410,7 @@ function DateFilter({
     );
   return (
     <View className="gap-2">
-      <Text className="text-sm font-bold text-ink">{label}</Text>
+      <Text className="text-sm font-medium text-ink">{label}</Text>
       {createElement("input", {
         type: "date",
         "aria-label": label,

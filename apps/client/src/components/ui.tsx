@@ -1,7 +1,8 @@
 import { type Href, Link } from "expo-router";
-import type { PropsWithChildren, ReactNode } from "react";
+import { type PropsWithChildren, type ReactNode, useState } from "react";
 import {
   ActivityIndicator,
+  Platform,
   Pressable,
   Text,
   TextInput,
@@ -76,7 +77,7 @@ export function Surface({
 }: PropsWithChildren<ViewProps & { tone?: keyof typeof surfaceTones }>) {
   return (
     <View
-      className={`rounded-[28px] p-5 ${surfaceTones[tone]} ${className}`}
+      className={`rounded-3xl p-5 ${surfaceTones[tone]} ${className}`}
       {...props}
     >
       {children}
@@ -178,7 +179,7 @@ export function Button({
       disabled={disabled || loading}
       onPress={onPress}
       testID={testID}
-      className={`flex-row items-center justify-center gap-2 rounded-2xl border ${sizing.box} ${tone.box} ${fullWidth ? "w-full" : ""} ${disabled ? "opacity-50" : "active:opacity-80"}`}
+      className={`flex-row items-center justify-center gap-2 rounded-xl border ${sizing.box} ${tone.box} ${fullWidth ? "w-full" : ""} ${disabled ? "opacity-50" : "active:opacity-80"}`}
     >
       {loading ? (
         <ActivityIndicator color={tone.spinner} />
@@ -186,7 +187,7 @@ export function Button({
         (icon ??
         (iconName ? <Icon name={iconName} size={18} color={tone.icon} /> : null))
       )}
-      <Text className={`shrink text-center font-bold ${sizing.text} ${tone.text}`}>
+      <Text className={`shrink text-center font-medium ${sizing.text} ${tone.text}`}>
         {label}
       </Text>
     </Pressable>
@@ -201,6 +202,7 @@ interface FieldProps extends TextInputProps {
 }
 
 export function Field({ label, error, hint, icon, ...props }: FieldProps) {
+  const [focused, setFocused] = useState(false);
   const input = (
     <TextInput
       accessibilityLabel={label}
@@ -208,14 +210,34 @@ export function Field({ label, error, hint, icon, ...props }: FieldProps) {
       textAlignVertical={props.multiline ? "top" : "center"}
       className={`${props.multiline ? "min-h-14 py-3" : "h-14 py-0"} ${icon ? "flex-1 border-0 bg-transparent pl-0" : `rounded-2xl border bg-white ${error ? "border-danger" : "border-line"}`} px-4 text-base leading-6 text-ink`}
       {...props}
+      // With an icon, the wrapper draws the border and the focus ring, so the
+      // bare input inside it must not draw its own.
+      style={
+        icon
+          ? [props.style, webOnly({ outlineStyle: "none", boxShadow: "none" })]
+          : props.style
+      }
+      onFocus={(event) => {
+        setFocused(true);
+        props.onFocus?.(event);
+      }}
+      onBlur={(event) => {
+        setFocused(false);
+        props.onBlur?.(event);
+      }}
     />
   );
   return (
     <View className="gap-2">
-      <Text className="text-sm font-bold text-ink">{label}</Text>
+      <Text className="text-sm font-medium text-ink">{label}</Text>
       {icon ? (
         <View
-          className={`flex-row items-center rounded-2xl border bg-white pl-4 ${error ? "border-danger" : "border-line"}`}
+          className={`flex-row items-center rounded-2xl border bg-white pl-4 ${error ? "border-danger" : focused ? "border-brand" : "border-line"}`}
+          style={
+            focused
+              ? webOnly({ boxShadow: "0 0 0 3px rgba(15, 123, 69, 0.18)" })
+              : undefined
+          }
         >
           <Icon name={icon} size={18} color={palette.muted} />
           {input}
@@ -273,13 +295,13 @@ export function StatusBadge({
         }[kind];
   return (
     <View
-      className={`flex-row items-center gap-1.5 self-start rounded-full border px-3 py-1 ${styles[0]}`}
+      className={`flex-row items-center gap-1.5 self-start rounded-lg border px-2.5 py-1 ${styles[0]}`}
     >
       <View
         className="h-1.5 w-1.5 rounded-full"
         style={{ backgroundColor: styles[2] }}
       />
-      <Text className={`text-xs font-bold uppercase tracking-wide ${styles[1]}`}>
+      <Text className={`text-xs font-medium ${styles[1]}`}>
         {t(`status.${normalized}`, {
           defaultValue: status.replaceAll("_", " "),
         })}
@@ -319,7 +341,7 @@ export function ErrorBlock({
         <View className="h-11 w-11 items-center justify-center rounded-2xl bg-red-50">
           <Icon name="alert" size={22} color={palette.danger} />
         </View>
-        <Text className="flex-1 text-lg font-extrabold text-danger">
+        <Text className="flex-1 text-lg font-semibold text-danger">
           {t("ui.somethingWrong")}
         </Text>
       </View>
@@ -372,7 +394,7 @@ export function Metric({
         </Text>
       </View>
       <Text
-        className={`text-3xl font-extrabold tracking-tight ${dark ? "text-white" : "text-ink"}`}
+        className={`text-3xl font-semibold tracking-tight ${dark ? "text-white" : "text-ink"}`}
       >
         {value}
       </Text>
@@ -490,7 +512,7 @@ export function ScreenHeader({
         ) : null}
         <Text
           accessibilityRole="header"
-          className={`font-extrabold tracking-tight ${titleSize === "xl" ? "text-4xl leading-tight md:text-5xl" : "text-3xl leading-tight md:text-4xl"} ${dark ? "text-white" : "text-ink"}`}
+          className={`font-semibold tracking-tight ${titleSize === "xl" ? "text-4xl leading-tight md:text-5xl" : "text-3xl leading-tight md:text-4xl"} ${dark ? "text-white" : "text-ink"}`}
         >
           {title}
         </Text>
@@ -570,12 +592,12 @@ export function Chip({
       {selected && onPress && !icon ? (
         <Icon name="check" size={14} color={iconColor} />
       ) : null}
-      <Text className={`text-sm font-bold ${textClass}`} numberOfLines={1}>
+      <Text className={`text-sm font-medium ${textClass}`} numberOfLines={1}>
         {label}
       </Text>
     </>
   );
-  const box = `flex-row items-center gap-1.5 self-start rounded-full border px-3 ${selected ? styles.on : styles.idle}`;
+  const box = `flex-row items-center gap-1.5 self-start rounded-lg border px-3 ${selected ? styles.on : styles.idle}`;
   if (!onPress)
     return <View className={`${box} min-h-7 py-1`}>{content}</View>;
   return (
@@ -599,7 +621,7 @@ export function DarkCard({
 }: PropsWithChildren<ViewProps>) {
   return (
     <View
-      className={`overflow-hidden rounded-[28px] bg-night p-5 shadow-float ${className}`}
+      className={`overflow-hidden rounded-3xl bg-night p-5 shadow-float ${className}`}
       {...props}
     >
       {children}
@@ -630,7 +652,7 @@ export function Timeline({
     <View className="gap-2">
       <View className="flex-row items-end justify-between gap-3">
         <View className="min-w-0 flex-1">
-          <Text className={`text-lg font-extrabold ${strong}`}>{start}</Text>
+          <Text className={`text-lg font-semibold ${strong}`}>{start}</Text>
           {startCaption ? (
             <Text className={`text-xs ${soft}`} numberOfLines={1}>
               {startCaption}
@@ -638,10 +660,10 @@ export function Timeline({
           ) : null}
         </View>
         {middle ? (
-          <Text className={`pb-0.5 text-xs font-bold ${strong}`}>{middle}</Text>
+          <Text className={`pb-0.5 text-xs font-medium ${strong}`}>{middle}</Text>
         ) : null}
         <View className="min-w-0 flex-1 items-end">
-          <Text className={`text-lg font-extrabold ${strong}`}>{end}</Text>
+          <Text className={`text-lg font-semibold ${strong}`}>{end}</Text>
           {endCaption ? (
             <Text className={`text-right text-xs ${soft}`} numberOfLines={1}>
               {endCaption}
@@ -707,7 +729,7 @@ export function LabeledValue({
         {label}
       </Text>
       <Text
-        className={`${sizeClass} ${textAlign} font-extrabold tracking-tight ${dark ? "text-white" : "text-ink"} ${mono ? "font-mono" : ""}`}
+        className={`${sizeClass} ${textAlign} font-semibold ${dark ? "text-white" : "text-ink"} ${mono ? "font-mono" : ""}`}
       >
         {value}
       </Text>
@@ -726,7 +748,7 @@ export function TicketStub({
   className?: string;
 }>) {
   return (
-    <View className={`rounded-[28px] bg-white ${className}`}>
+    <View className={`rounded-3xl bg-white ${className}`}>
       <View className="gap-4 p-5">{children}</View>
       {footer ? (
         <>
@@ -743,7 +765,7 @@ export function TicketStub({
               className={`absolute -right-3 top-0 h-6 w-6 rounded-full ${notchClassName}`}
             />
           </View>
-          <View className="gap-4 p-5">{footer}</View>
+          <View className="flex-1 gap-4 p-5">{footer}</View>
         </>
       ) : null}
     </View>
@@ -752,7 +774,7 @@ export function TicketStub({
 
 export function StickyActionBar({ children }: PropsWithChildren) {
   return (
-    <View className="flex-row flex-wrap items-center justify-between gap-3 rounded-t-[28px] border border-b-0 border-line bg-white px-5 pb-5 pt-4 shadow-float md:rounded-[28px] md:border-b">
+    <View className="flex-row flex-wrap items-center justify-between gap-3 rounded-t-3xl border border-b-0 border-line bg-white px-5 pb-5 pt-4 shadow-float md:rounded-3xl md:border-b">
       {children}
     </View>
   );
@@ -786,7 +808,7 @@ export function ClassCard({
               <Icon name="check" size={16} color={palette.mint} />
             ) : null}
             <Text
-              className={`shrink text-base font-extrabold ${selected ? "text-white" : "text-ink"}`}
+              className={`shrink text-base font-semibold ${selected ? "text-white" : "text-ink"}`}
             >
               {title}
             </Text>
@@ -800,7 +822,7 @@ export function ClassCard({
           ) : null}
         </View>
         <Text
-          className={`text-xl font-extrabold tracking-tight ${selected ? "text-white" : "text-ink"}`}
+          className={`text-xl font-semibold ${selected ? "text-white" : "text-ink"}`}
         >
           {price}
         </Text>
@@ -839,7 +861,7 @@ export function SectionTitle({
       <View className="min-w-0 flex-1 gap-0.5">
         <Text
           accessibilityRole="header"
-          className="text-xl font-extrabold tracking-tight text-ink"
+          className="text-xl font-semibold text-ink"
         >
           {title}
         </Text>
@@ -885,7 +907,7 @@ export function Notice({
 }>) {
   const styles = noticeTones[tone];
   const defaultIcon: IconName =
-    tone === "success" ? "check" : tone === "info" ? "sparkle" : "alert";
+    tone === "success" ? "check" : tone === "info" ? "help" : "alert";
   return (
     <View
       className={`flex-row items-start gap-3 rounded-2xl border p-3 ${styles.box}`}
@@ -895,9 +917,14 @@ export function Notice({
       }
     >
       <Icon name={icon ?? defaultIcon} size={18} color={styles.icon} />
-      <Text className={`flex-1 ${bold ? "font-bold" : ""} ${styles.text}`}>
+      <Text className={`flex-1 ${bold ? "font-medium" : ""} ${styles.text}`}>
         {children}
       </Text>
     </View>
   );
+}
+
+/** Style that only applies on web (outline and box-shadow are web-only). */
+function webOnly(style: Record<string, string>) {
+  return (Platform.OS === "web" ? style : {}) as object;
 }

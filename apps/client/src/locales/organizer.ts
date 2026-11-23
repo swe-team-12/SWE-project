@@ -105,7 +105,7 @@ export const en = {
     },
     validation: {
       fixFields: "Some fields need attention. Check the highlighted fields.",
-      titleShort: "Enter a title of at least 3 characters.",
+      titleShort: "Enter a title of at least 3 characters",
       descriptionShort: "Enter a description of at least 10 characters.",
       categoryShort: "Enter a category of at least 2 characters.",
       venueShort: "Enter the venue name.",
@@ -643,7 +643,7 @@ export const ru = {
     },
     validation: {
       fixFields: "Некоторые поля заполнены неверно. Проверьте выделенные поля.",
-      titleShort: "Введите название не короче 3 символов.",
+      titleShort: "Введите название не короче 3 символов",
       descriptionShort: "Введите описание не короче 10 символов.",
       categoryShort: "Введите категорию не короче 2 символов.",
       venueShort: "Введите название площадки.",
@@ -1181,7 +1181,7 @@ export const kk = {
     },
     validation: {
       fixFields: "Кейбір өрістер қате толтырылған. Белгіленген өрістерді тексеріңіз.",
-      titleShort: "Кемінде 3 таңбадан тұратын атау енгізіңіз.",
+      titleShort: "Кемінде 3 таңбадан тұратын атау енгізіңіз",
       descriptionShort: "Кемінде 10 таңбадан тұратын сипаттама енгізіңіз.",
       categoryShort: "Кемінде 2 таңбадан тұратын санат енгізіңіз.",
       venueShort: "Өтетін орынның атауын енгізіңіз.",

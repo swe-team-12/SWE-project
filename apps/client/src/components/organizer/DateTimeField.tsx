@@ -32,7 +32,7 @@ export function DateTimeField({
   const describedBy = error ?? hint;
   return (
     <View className="gap-2">
-      <Text className="text-sm font-bold text-ink">{label}</Text>
+      <Text className="text-sm font-medium text-ink">{label}</Text>
       {Platform.OS === "web" ? (
         createElement("input", {
           type: mode === "date" ? "date" : "datetime-local",

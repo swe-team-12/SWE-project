@@ -226,7 +226,7 @@ export function HistorySection({
           testID={`history-${entry.id}`}
           className="gap-1 rounded-2xl border border-line bg-canvas/60 p-4"
         >
-          <Text className="font-bold text-ink">
+          <Text className="font-medium text-ink">
             {historyActionText(entry, t)}
           </Text>
           <Text className="text-sm text-ink">

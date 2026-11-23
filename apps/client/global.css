@@ -40,6 +40,15 @@ body * {
   outline-offset: 2px;
 }
 
+/* Text fields show focus on their own rounded border instead of a square
+   outline drawn outside it. */
+input:focus-visible,
+textarea:focus-visible {
+  outline: none;
+  border-color: #0f7b45 !important;
+  box-shadow: 0 0 0 3px rgba(15, 123, 69, 0.18);
+}
+
 @media print {
   body {
     background: #ffffff;

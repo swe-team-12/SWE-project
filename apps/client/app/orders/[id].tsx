@@ -35,11 +35,11 @@ function Row({
 }) {
   return (
     <View className="flex-row flex-wrap justify-between gap-3">
-      <Text className={strong ? "text-lg font-black text-ink" : "text-muted"}>
+      <Text className={strong ? "text-lg font-semibold text-ink" : "text-muted"}>
         {label}
       </Text>
       <Text
-        className={strong ? "text-xl font-black text-ink" : "font-bold text-ink"}
+        className={strong ? "text-xl font-semibold text-ink" : "font-medium text-ink"}
       >
         {value}
       </Text>
@@ -55,7 +55,7 @@ function CardHeading({ icon, title }: { icon: IconName; title: string }) {
       </View>
       <Text
         accessibilityRole="header"
-        className="flex-1 text-lg font-extrabold tracking-tight text-ink"
+        className="flex-1 text-lg font-semibold text-ink"
       >
         {title}
       </Text>
@@ -78,7 +78,7 @@ function LinkButton({
         accessibilityRole="link"
         className={`min-h-12 items-center justify-center rounded-2xl border px-5 active:opacity-80 ${primary ? "border-mint bg-mint" : "border-line bg-white"}`}
       >
-        <Text className="text-center font-bold text-ink">
+        <Text className="text-center font-medium text-ink">
           {label}
         </Text>
       </Pressable>
@@ -140,7 +140,7 @@ function OrderContent() {
               <Icon name="check" size={32} strokeWidth={3} />
             </View>
             <View className="min-w-0 flex-1 gap-1">
-              <Text className="text-3xl font-extrabold tracking-tight text-white">
+              <Text className="text-3xl font-semibold tracking-tight text-white">
                 {t("attendee.orders.confirmedTitle")}
               </Text>
               <Text className="text-white/80">
@@ -150,7 +150,7 @@ function OrderContent() {
           </View>
           <View className="flex-row flex-wrap items-center justify-between gap-3 rounded-3xl bg-white/10 p-4">
             <View className="min-w-0 flex-1">
-              <Text className="text-sm font-bold text-white">
+              <Text className="text-sm font-medium text-white">
                 {order.event_title ?? t("attendee.orders.unknownEvent")}
               </Text>
               <Text className="text-xs text-white/65">{t("common.demo")}</Text>
@@ -161,7 +161,7 @@ function OrderContent() {
                 className="min-h-12 flex-row items-center justify-center gap-2 rounded-2xl bg-mint px-5 active:opacity-80"
               >
                 <Icon name="ticket" size={18} />
-                <Text className="font-bold text-ink">
+                <Text className="font-medium text-ink">
                   {t("attendee.orders.viewTickets")}
                 </Text>
               </Pressable>
@@ -171,7 +171,7 @@ function OrderContent() {
       ) : null}
       {closed ? (
         <Surface className="gap-2 border-red-100 bg-red-50">
-          <Text className="text-lg font-extrabold text-danger">
+          <Text className="text-lg font-semibold text-danger">
             {t(`attendee.orders.closedTitle.${order.status}`)}
           </Text>
           <Text className="text-ink">
@@ -188,7 +188,7 @@ function OrderContent() {
         <View className="min-w-0 flex-[2] basis-80 gap-6">
           <Surface className="gap-3">
             <CardHeading icon="calendar" title={t("attendee.orders.eventSection")} />
-            <Text className="text-2xl font-extrabold tracking-tight text-ink">
+            <Text className="text-2xl font-semibold tracking-tight text-ink">
               {order.event_title ?? t("attendee.orders.unknownEvent")}
             </Text>
             {order.event_status && order.event_status !== "published" ? (
@@ -230,10 +230,10 @@ function OrderContent() {
             {items.map((item) => (
               <View key={item.id} className="gap-1 rounded-2xl bg-canvas p-4">
                 <View className="flex-row flex-wrap justify-between gap-3">
-                  <Text className="min-w-40 flex-1 font-bold text-ink">
+                  <Text className="min-w-40 flex-1 font-medium text-ink">
                     {item.ticket_type_name}
                   </Text>
-                  <Text className="font-bold text-ink">
+                  <Text className="font-medium text-ink">
                     {item.unit_price_tiyin
                       ? money(item.unit_price_tiyin)
                       : t("common.free")}
@@ -279,7 +279,7 @@ function OrderContent() {
                 className="flex-row flex-wrap items-center justify-between gap-3"
               >
                 <View className="min-w-40 flex-1">
-                  <Text className="font-bold text-ink">
+                  <Text className="font-medium text-ink">
                     {money(payment.amount_tiyin)}
                   </Text>
                   <Text className="text-xs text-muted">
@@ -294,13 +294,13 @@ function OrderContent() {
             ))}
             {refunds.length ? (
               <View className="gap-2 border-t border-line pt-3">
-                <Text className="font-black text-ink">
+                <Text className="font-semibold text-ink">
                   {t("attendee.orders.refundsTitle")}
                 </Text>
                 {refunds.map((refund) => (
                   <View key={refund.id} className="gap-1">
                     <View className="flex-row flex-wrap items-center justify-between gap-3">
-                      <Text className="font-bold text-ink">
+                      <Text className="font-medium text-ink">
                         {money(refund.amount_tiyin)}
                       </Text>
                       <StatusBadge status={refund.status} />

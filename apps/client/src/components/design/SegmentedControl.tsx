@@ -42,7 +42,7 @@ export function SegmentedControl<T extends string>({
             className={`min-h-11 min-w-11 items-center justify-center rounded-xl px-4 ${active ? (dark ? "bg-mint" : "bg-ink") : "bg-transparent"}`}
           >
             <Text
-              className={`font-bold ${active ? (dark ? "text-ink" : "text-white") : dark ? "text-white/75" : "text-muted"}`}
+              className={`font-medium ${active ? (dark ? "text-ink" : "text-white") : dark ? "text-white/75" : "text-muted"}`}
             >
               {option.label}
             </Text>

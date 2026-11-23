@@ -49,7 +49,7 @@ function FailureReason({ reason }: { reason?: string | null }) {
   const { t } = useTranslation();
   if (!reason) return null;
   return (
-    <Text className="text-sm font-bold text-danger">
+    <Text className="text-sm font-medium text-danger">
       {t("adminX.payments.failure", {
         reason: t(`adminX.failureReason.${reason}`, { defaultValue: reason }),
       })}
@@ -144,7 +144,7 @@ export function AdminPayments({ initialQuery }: { initialQuery?: string }) {
   });
   return (
     <Surface className="gap-4">
-      <Text accessibilityRole="header" className="text-xl font-extrabold tracking-tight text-ink">
+      <Text accessibilityRole="header" className="text-xl font-semibold text-ink">
         {t("adminX.payments.title")}
       </Text>
       <Meta>{t("adminX.payments.help")}</Meta>
@@ -201,7 +201,7 @@ export function AdminPayments({ initialQuery }: { initialQuery?: string }) {
       />
       {payments.data?.map((item) => (
         <Row key={item.id} aside={<StatusBadge status={item.status} />}>
-          <Text className="font-bold text-ink">
+          <Text className="font-medium text-ink">
             {formatKzt(item.amount_tiyin, i18n.language)}
             {" · "}
             {t(`adminX.paymentKind.${item.kind}`, { defaultValue: item.kind })}
@@ -257,7 +257,7 @@ export function AdminRefunds() {
   });
   return (
     <Surface className="gap-4">
-      <Text accessibilityRole="header" className="text-xl font-extrabold tracking-tight text-ink">
+      <Text accessibilityRole="header" className="text-xl font-semibold text-ink">
         {t("adminX.refunds.title")}
       </Text>
       <Meta>{t("adminX.refunds.help")}</Meta>
@@ -271,7 +271,7 @@ export function AdminRefunds() {
       />
       {refunds.data?.map((item) => (
         <Row key={item.id} aside={<StatusBadge status={item.status} />}>
-          <Text className="font-bold text-ink">
+          <Text className="font-medium text-ink">
             {formatKzt(item.amount_tiyin, i18n.language)}
             {" · "}
             {t("adminX.common.order", { number: item.order_number })}
@@ -332,7 +332,7 @@ export function AdminActivations() {
   });
   return (
     <Surface className="gap-4">
-      <Text accessibilityRole="header" className="text-xl font-extrabold tracking-tight text-ink">
+      <Text accessibilityRole="header" className="text-xl font-semibold text-ink">
         {t("ui.activationReview")}
       </Text>
       <Meta>{t("adminX.activations.help")}</Meta>
@@ -345,7 +345,7 @@ export function AdminActivations() {
       />
       {activations.data?.map((item) => (
         <Row key={item.id} aside={<StatusBadge status={item.status} />}>
-          <Text className="font-bold text-ink">
+          <Text className="font-medium text-ink">
             {formatKzt(item.amount_tiyin, i18n.language)}
           </Text>
           <EventLink
@@ -427,7 +427,7 @@ export function AdminPayouts() {
   });
   return (
     <Surface className="gap-4">
-      <Text accessibilityRole="header" className="text-xl font-extrabold tracking-tight text-ink">
+      <Text accessibilityRole="header" className="text-xl font-semibold text-ink">
         {t("ui.payoutLedger")}
       </Text>
       <Meta>{t("adminX.payouts.help")}</Meta>
@@ -482,7 +482,7 @@ export function AdminPayouts() {
               ) : null
             }
           >
-            <Text className="font-bold text-ink">
+            <Text className="font-medium text-ink">
               {formatKzt(item.amount_tiyin, i18n.language)}
             </Text>
             <EventLink
@@ -570,7 +570,7 @@ export function AdminCampaigns() {
   });
   return (
     <Surface className="gap-4">
-      <Text accessibilityRole="header" className="text-xl font-extrabold tracking-tight text-ink">
+      <Text accessibilityRole="header" className="text-xl font-semibold text-ink">
         {t("adminX.campaigns.title")}
       </Text>
       <Meta>{t("adminX.campaigns.help")}</Meta>
@@ -631,7 +631,7 @@ export function AdminCampaigns() {
             ) : null
           }
         >
-          <Text className="font-bold text-ink">
+          <Text className="font-medium text-ink">
             {item.name} · <Text className="font-mono">{item.code}</Text>
           </Text>
           <Meta>
@@ -729,7 +729,7 @@ export function AdminSupportCases() {
   });
   return (
     <Surface className="gap-4">
-      <Text accessibilityRole="header" className="text-xl font-extrabold tracking-tight text-ink">
+      <Text accessibilityRole="header" className="text-xl font-semibold text-ink">
         {t("adminX.cases.title")}
       </Text>
       <Meta>{t("adminX.cases.help")}</Meta>

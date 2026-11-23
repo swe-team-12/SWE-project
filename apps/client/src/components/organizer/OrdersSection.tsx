@@ -137,7 +137,7 @@ export function OrdersSection({ event }: { event: OrgEvent }) {
           >
             <View className="flex-row flex-wrap items-start justify-between gap-3">
               <View className="min-w-60 flex-1 gap-1">
-                <Text className="font-bold text-ink">{order.order_number}</Text>
+                <Text className="font-medium text-ink">{order.order_number}</Text>
                 <Fact
                   label={t("organizer.orders.buyer")}
                   value={`${order.buyer_name ?? "—"} · ${order.buyer_email ?? "—"}`}
@@ -233,7 +233,7 @@ export function OrdersSection({ event }: { event: OrgEvent }) {
             className="flex-row flex-wrap items-start justify-between gap-3 rounded-2xl border border-line bg-canvas/60 p-4"
           >
             <View className="min-w-60 flex-1 gap-1">
-              <Text className="font-bold text-ink">
+              <Text className="font-medium text-ink">
                 {money(item.amount_tiyin)} · {item.order_number ?? "—"}
               </Text>
               <Fact
